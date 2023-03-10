@@ -158,3 +158,72 @@
     ```
 
     
+
+
+
+### 2.3. Filter implementation in C++
+
+* Comparison of effect of each filters
+
+  * Original image
+
+    <img src="https://user-images.githubusercontent.com/99113269/224306172-8c21e8f3-5166-44e8-9dbf-36e9b9980499.png" alt="image" style="zoom:50%;" />
+
+  * Blur, Gaussian blur, Median blur
+
+    ```c++
+    size : kernel size
+    
+    /* Blur */
+    cv::blur(src, dst, cv::Size(i, i), cv::Point(-1, -1));
+    
+    /* Gaussian Filter */
+    cv::GaussianBlur(src, dst, cv::Size(i, i), 0);
+    
+    /* Median Filter */
+    cv::medianBlur(src, dst, 3);
+    ```
+
+    * Result
+
+      <img src="https://user-images.githubusercontent.com/99113269/224307615-c20dd1e4-5506-4eb8-a89a-89c718a095db.png" alt="image" style="zoom: 67%;" />
+
+  * Laplacian filter & Result
+
+    ```c++
+    /* Laplacian Filter */
+    int kernel_size = 3;
+    int scale		= 1;
+    int delta		= 0;
+    int ddepth		= CV_16S;
+    
+    cv::Laplacian(src, dst, ddepth, kernel_size, scale, delta, cv::BORDER_DEFAULT);
+    src.convertTo(src, CV_16S);
+    cv::Mat result_laplcaian = src - dst;
+    result_laplcaian.convertTo(result_laplcaian, CV_8U);
+    
+    namedWindow("Laplacian", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Laplacian", result_laplcaian);
+    ```
+
+    <img src="https://user-images.githubusercontent.com/99113269/224308231-f8cdbd42-5ddd-4d74-9095-7e571da68818.png" alt="image" style="zoom:45%;" />
+
+  * 
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
