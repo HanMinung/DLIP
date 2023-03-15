@@ -208,22 +208,217 @@
 
     <img src="https://user-images.githubusercontent.com/99113269/224308231-f8cdbd42-5ddd-4d74-9095-7e571da68818.png" alt="image" style="zoom:45%;" />
 
-  * 
+
+
+### 3. Thresholding& Morphology
+
+----
+
+#### 3.1. T(r)  :  s(i, j) = T(r( i, j ))
+
+* Changes the intensity of individual pixels, from level r (input) to s (output)
+
+* Histogram : Probability of the occurrence of intensity level r_k
+
+  <img src="https://user-images.githubusercontent.com/99113269/224997865-f13c5a02-5ddf-4a02-8790-c66c5affb0ce.png" alt="image" style="zoom: 50%;" />
+
+
+
+#### 3.2. Histogram equalization
+
+##### 3.2.1. Definition
+
+* For object segmentation, it is preferable to have a high contrast image
+
+  <img src="https://user-images.githubusercontent.com/99113269/224998430-9bedeb09-cb94-4b61-8413-9fa155339147.png" alt="image" style="zoom: 38%;" />
+
+##### 3.2.2. Local Histogram equalization
+
+* Divide image into sections and apply histogram statistics locally for image enhancement
+
+  <img src="https://user-images.githubusercontent.com/99113269/224999116-59c610c6-926e-4eac-8c0b-c0cec180bc4c.png" alt="image" style="zoom:38%;" />
+
+* Global thresholdong : Basic global thresholding / Otsu's method
+
+  Local thresholding : Variable threshold values for each sub-window
+
+
+
+##### 3.2.3. Global Binary Thresholding
+
+* Different methods for thresholding (openCV functions)
+
+<img src="https://user-images.githubusercontent.com/99113269/225000133-175c070d-69a4-4605-b5b6-1a761dd4b395.png" alt="image" style="zoom:40%;" />
+
+* Apply when the object and background has distinct intensity distribution
+
+* Minimize the average error occurred om segmented groups
+
+* An iterative algorithm of finding T
+
+  - Initial estimation of T ( usually mean of image intensity )
+
+  - segment the image using T
+
+  - find mean of Ga and G2
+
+  - compute new T value
+
+  - repetition
+
+    <img src="https://user-images.githubusercontent.com/99113269/225001124-e515d766-0fd4-41d7-8e4a-17561807aae4.png" alt="image" style="zoom:50%;" />
+
+
+
+
+
+##### 3.2.4. Optimum global threshold - Otsu method
+
+* Optimum threshold by maximizing the between-class variance
+
+* Algorithm for finding critical point without any repetition
+
+* 임계값을 임의로 정해 픽셀을 두 부류로 나누고 두 부류의 명암 분포를 구하는 작업을 반복
+
+* 모든 경우의 수 중에서 두 뷰류의 명암 분포가 가장 균일할 때의 임계값을 선택한다.
+
+* Procedure
+
+  * 히스토그램에서 가중치 분산을 최소화한 결과로 주어진 임계값 t를 사용하여 구 클래스로 분리한다. 
+
+  * Within class variance
+
+    <img src="https://user-images.githubusercontent.com/99113269/225005401-3e4b7ede-6553-4363-b865-7ae899295a7f.png" alt="image" style="zoom:50%;" />
+
+  * Within class variance가 최소가 되는 t값을 찾는 것이다. 
+
+  * 따라서, 다음 Between-class variance라는 개념을 새로 정의한다.
+
+    <img src="https://user-images.githubusercontent.com/99113269/225006411-df3a7e0d-5340-4a17-8690-045192a31906.png" alt="image" style="zoom: 33%;" />
+
+    <img src="https://user-images.githubusercontent.com/99113269/225007832-b69deabd-e91c-46e3-b43d-8b36f4dc1ef1.png" alt="image" style="zoom: 50%;" />
+
+
+
+
+
+##### 3.2.5. Local thresholding
+
+- Apply thresholding differently on segment of images
+
+  <img src="https://user-images.githubusercontent.com/99113269/225009152-b65a24f2-60a2-48f7-b6fd-a79d856b7179.png" alt="image" style="zoom:40%;" />
+
+
+
+
+
+
+
+#### 3.3. Morphology
+
+* After the threshold, small pieces of broken segments are seen
+* There exists two methods : Dilation, Erosion
+
+
+
+##### 3.3.1. Dilation
+
+* Definition : LOGIC OR
+* 하나라도 겹치면 1로 처리
+* Effect : thickens / Grows objects, used for bridging gap
+
+<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230314222417841.png" alt="image-20230314222417841" style="zoom:50%;" />
+
+
+
+##### 3.3.2. Erosion
+
+* Definition : AND logic
+
+* 모두 겹쳐야 1로 처리
+
+* Erosion example
+
+  <img src="https://user-images.githubusercontent.com/99113269/225014804-ddecad21-9ff0-43ed-b652-329251e622b1.png" alt="image" style="zoom:50%;" />
+
+
+
+##### 3.3.3. Opening and Closing
+
+* Opening
+
+  * To smooth the contour of an object, eliminate thin protrusions.
+
+  * erosion of A by B  --> dilate by B
+
+  * Erosion을 하여 잔 점들을 모두 없애고, 후에 dilate를 진행
+
+    <img src="https://user-images.githubusercontent.com/99113269/225015620-b7cdc878-7b70-4ae5-8be5-e2cdee1305e7.png" alt="image" style="zoom: 67%;" />
 
     
 
-    
+* Closing
 
-    
+  * Dilate A by B --> Erode by B
 
-    
+  * Effect ( refer below example )
 
-    
+    <img src="https://user-images.githubusercontent.com/99113269/225015930-ae0c9ad1-fc5c-4792-bd5f-b0823acc62a9.png" alt="image" style="zoom: 42%;" />
 
-    
 
-    
 
-    
 
-    
+
+
+
+ #### 3.4. Sample  code
+
+##### 3.4.1. Threshold function
+
+```c++
+[threshhold - type]
+	0: Binary
+	1: Binary Inverted
+	2: Threshold Truncated
+	3: Threshold to Zero
+	4: Threshold to Zero Inverted
+        
+- Function implementation
+threshold(src, dst, threshold_value, max_binary_value, threshold_type);
+```
+
+
+
+##### 3.4.2. Track bar
+
+* Trackbar의 경우, interrupt와 같이 변화가 있을때 마다 demo 함수가 실행이 된다.
+
+```c++
+// [Trackbar variable]
+int threshold_value = 0;
+int threshold_type	= 0;
+int Cval = 0;
+int morphology_type = 0;
+
+int const max_value = 255;
+int const max_type	= 6;
+int const max_C = 10;
+int const max_binary_value = 255;
+
+// [Trackbar strings]
+String window_name		= "Threshold & Morphology Demo";
+String trackbar_type	= "Thresh Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero 								   Invertd \n 5: Otsu method";
+String trackbar_value	= "Thresh Value";
+String trackbar_morph	= "Morph Type 0: None \n 1: erode \n 2: dilate \n 3:  \n 4: open";
+
+// Create trackbar to choose type of threshold
+createTrackbar(trackbar_type,	window_name, &threshold_type,	max_type,	Threshold_Demo);
+createTrackbar(trackbar_value,	window_name, &threshold_value,	max_value,	Threshold_Demo);
+createTrackbar(Cvalue, window_name, &Cval, max_C, Threshold_Demo);
+createTrackbar(trackbar_morph,	window_name, &morphology_type,	max_type,	Morphology_Demo);
+
+// Call the function to initialize
+Threshold_Demo(0, 0);
+Morphology_Demo(0, 0);
+```
+
