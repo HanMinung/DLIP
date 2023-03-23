@@ -422,3 +422,36 @@ Threshold_Demo(0, 0);
 Morphology_Demo(0, 0);
 ```
 
+
+
+### Tips
+
+#### Tip_1 : Showing multiple images in one window
+
+```c++
+#include <opencv2/opencv.hpp>
+using namespace cv;
+
+void main(){
+    
+    Mat image1 = imread("image1.jpg");
+    Mat image2 = imread("image2.jpg");
+    Mat image3 = imread("image3.jpg");
+    Mat image4 = imread("image4.jpg");
+
+    std::vector<Mat> images;
+    images.push_back(image1);
+    images.push_back(image2);
+    images.push_back(image3);
+    images.push_back(image4);
+
+    Mat result;
+    hconcat(images, result);
+
+    imshow("Result", result);
+    waitKey(0);
+
+}
+
+```
+
