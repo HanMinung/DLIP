@@ -76,7 +76,7 @@ $$
 
 ### 3.5. Reshaping & Sorting
 
-​			Based on the masked result, intensity and the following temperature can be calculated by reshaping masking result **(3.4. Getting contour & Masking)**. The mapping equation that I used is as follows : 
+​			Based on the masked result, intensity and the following temperature can be calculated by reshaping masking result **(3.4. Getting contour & Masking)**. The sorting process (descending) and the mapping equation for converting intensity to temperature that I used is as follows : 
 
 ```c++
 // Sorting
@@ -90,7 +90,19 @@ float PIX2DEG(float val) {
 }
 ```
 
+To identify which pixels in a sorted grayscale image have intensity, follow the steps outlined below and examine the resulting image as shown in the figure. The ratio of pixels with intensity to the post-processed image of size 640X480 was found to be around 7~9%. When the contour area is enlarged as a person in the video comes near the cam or the neck area is included as a person in the video fades away, this percentage increases to about 10-15%. However, if the intensity ratio is high, it becomes difficult to distinguish people with a fever. In conclusion, only the top 1% of pixels from the sorted image (3,072 pixels in a 640X480 image) are accumulated and averaged to obtain accurate results, as demonstrated in the video below **(4. Result video).**
 
+```c++
+for (int idx = 0; idx < graySort.cols; idx++) {
+
+	if (graySort.at<uchar>(0, idx) != 0)	chk++;
+}
+
+printf("# of pixels with intensity : %d\n", chk);
+printf("Percentage : %lf [percentage]\n\n", float(chk) * 100 / float(640 * 480));
+```
+
+ <img src="https://user-images.githubusercontent.com/99113269/229334627-a942073d-1324-460f-b0f3-d877cad18814.png" alt="image" style="zoom:50%;" />
 
 
 
