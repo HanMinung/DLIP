@@ -106,13 +106,17 @@ printf("Percentage : %lf [percentage]\n\n", float(chk) * 100 / float(640 * 480))
 
 
 
+
+
 ## 4. Result video
 
 Link : https://youtu.be/FIHCVJwhP5s
 
-[![Video Label](http://img.youtube.com/vi/FIHCVJwhP5s/0.jpg)](https://youtu.be/FIHCVJwhP5s)
+[![Video Label](http://img.youtube.com/vi/7QqDFfeel8Q/0.jpg)](https://www.youtube.com/watch?v=7QqDFfeel8Q)
 
 Github : https://github.com/HanMinung/DLIP
+
+
 
 
 
