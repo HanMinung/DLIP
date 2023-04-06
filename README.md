@@ -60,6 +60,8 @@
 
 #### 2.1. 2D convolution of filter window
 
+
+
 <img src="https://user-images.githubusercontent.com/99113269/224071475-aed154f7-2eb4-4abc-b34c-9160c4baf982.png" alt="image" style="zoom:50%;" />
 
 * General representation : normalization
@@ -72,9 +74,7 @@
 
 
 
-### 2.2. Commonly used spatial filter mask
-
-#### 2.2.1. Smoothing filter
+#### 2.2. Commonly used spatial filter mask
 
 - average of the pixels in the neighborhood of the filter mask.
 
@@ -84,7 +84,7 @@
 
 
 
-#### 2.2.2. Sharpening filter
+##### 2.2.1. Sharpening filter
 
 * Method using derivative
 
@@ -161,7 +161,7 @@
 
 
 
-### 2.3. Filter implementation in C++
+#### 2.3. Filter implementation in C++
 
 * Comparison of effect of each filters
 
@@ -421,6 +421,78 @@ createTrackbar(trackbar_morph,	window_name, &morphology_type,	max_type,	Morpholo
 Threshold_Demo(0, 0);
 Morphology_Demo(0, 0);
 ```
+
+
+
+### 4. Feature detection
+
+​			Edge has rapid change in image intensity. Intensity gradient is 2D vector. (Gradient strength, Gradient direction). Gradient direction is perpendicular to edge difrection. Actual edges are ramp-like instead of step edge. Since edge detection uses gradient method (derivative), data should be proceesed like smoothing. 
+
+#### 4.1. Preprocess
+
+* To reduce the noise effect, use smooth filter before edge detection : average filter, median filter, Gaussian filter
+
+* But smoothing blurs edges
+
+  <img src="https://user-images.githubusercontent.com/99113269/230282687-0dc15462-2c65-4640-bfb7-f4d873e6323a.png" alt="image" style="zoom: 67%;" />
+
+<img src="https://user-images.githubusercontent.com/99113269/230282907-c2b9214d-ee91-46f6-ba5c-b89e3b10119d.png" alt="image" style="zoom: 67%;" />
+
+<img src="https://user-images.githubusercontent.com/99113269/230283192-37491333-5ba2-4696-84f9-4872885ac125.png" alt="image" style="zoom:67%;" />
+
+
+
+#### 4.2. Canny edge detection
+
+* What is good edge detector?
+
+  * Low error rate : all edges should be found
+  * Well localized edge points
+
+* Canny algorithm uses 1st derivative for detection
+
+  
+
+##### 4.2.1. Factors in canny edge detection
+
+* Sigma : size of gaussian filter
+* Good values to start with are between 0.6 to 2.4
+  * Smaller filters cause less blurring, and allow detection of small, sharp lines.
+  * A larger filter increases processing time and causes more blurring.
+
+
+
+##### 4.2.2. Non-maxima suppression
+
+​			Check if pixel is local maximum along gradient direction angle. Figure below shows the result of applying nonmaxima suppression.
+
+<img src="https://user-images.githubusercontent.com/99113269/230284934-bec92852-e4c2-4ace-9abc-b879ef5c8bf6.png" alt="image" style="zoom:50%;" />
+
+
+
+##### 4.2.3. Thresholding
+
+* Too high thresholding : actual validated edge points will be eliminated.
+* Too low thresholding : false edges will be detected
+
+
+
+#### 4.3. Line detection
+
+​			Consider parameter space of mc-plane. 
+$$
+y = mx + c --> c = -xm + y
+$$
+
+* A line in the image corresponds to a point in Hough space. 
+
+* A point in the image corresponds to a line in Hough space.
+
+Two different points on a same line in xy plane ( y = mx + c ) intersects in same point in hough space. 
+
+<img src="https://user-images.githubusercontent.com/99113269/230286871-7f7b9b28-5e0c-4233-8bcb-16983e806108.png" alt="image" style="zoom:50%;" />
+
+
 
 
 
