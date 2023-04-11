@@ -4,11 +4,7 @@
 * Created: 2023-Spring
 ------------------------------------------------------*/
 
-#include <iostream>
-#include <opencv2/opencv.hpp>
-
-using namespace std;
-using namespace cv;
+#include "../../Include/myFunc.h"
 
 // Global variables for Threshold
 int threshold_value = 0;
@@ -22,7 +18,6 @@ int const max_C = 10;
 int const max_binary_value = 255;
 
 // Global variables for Morphology
-// MORPH_RECT, MORPH_ELIPSE, MORPH_CROSS
 int element_shape = MORPH_RECT;		
 int n = 3;
 Mat element = getStructuringElement(element_shape, Size(n, n));
@@ -42,7 +37,7 @@ void Morphology_Demo(int, void*);
 
 int main(){
 
-	src = imread("../../Image/Thresholding&Morphology/localThresh2.jpg", IMREAD_COLOR);
+	src = imread("../Image/localThresh2.jpg", IMREAD_COLOR);
 
 	cvtColor(src, src_gray, CV_BGR2GRAY);
 
@@ -68,35 +63,21 @@ int main(){
 
 void Threshold_Demo(int, void*){
 
-	/* 
-	* 0: Binary
-	* 1: Threshold Truncated
-	* 2: Threshold to Zero
-	* 3: Threshold to Zero Inverted
-	* 4: To zero inverted
-	* 5: Otsu method
-	* 6: adaptive threshold
-	*/
-		
+	//	0: Binary	1: Threshold Truncated	  2: Threshold to Zero	3: Threshold to Zero Inverted
+	//	4: To zero inverted		5: Otsu method		6: adaptive threshold
+	
 	if (threshold_type == 5)  threshold_type = 8;
-
 	threshold(src_gray, dst, threshold_value, max_binary_value, threshold_type);
 
 	if (threshold_type == 6)  adaptiveThreshold(src_gray, dst, max_binary_value, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 3, Cval);
-
 	imshow(window_name, dst);
 }
 
 // default form of callback function for trackbar
 void Morphology_Demo(int, void*){  
 
-	/*
-	* 0: None
-	* 1: Erode
-	* 2: Dilate
-	* 3: Close
-	* 4: Open
-	*/
+	// 0: None	1: Erode	2: Dilate	3: Close	4: Open 
+	
 	switch (morphology_type) {
 
 		case 0: dst.copyTo(dst_morph);									break;

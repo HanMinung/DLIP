@@ -3,49 +3,31 @@
 * OpenCV : Threshold Demo
 * Created: 2023-Spring
 ------------------------------------------------------*/
-#include <opencv2/opencv.hpp>
-#include <iostream>
 
-using namespace cv;
-using namespace std;
+#include "../../Include/myFunc.h"
+
+
+int thresholdVal = 100;
 
 //* @function main
 int main(){
 
-	Mat src, src_gray, dst, dst_morph;
+	Mat src, src_gray, dst, dstMorph;
 	
-	src = imread("../../Image/Thresholding&Morphology/coin.jpg", 0);    
+	src = imread("../Image/coin.jpg", 0);    
 
-	if (src.empty())							
-	{
-		cout << "File Read Failed : src is empty" << endl;
-		waitKey(0);
-	}
+	checkLoad(src);
 
-	namedWindow("DemoWindow", CV_WINDOW_AUTOSIZE);	//CV_WINDOW_AUTOSIZE(1) :Fixed Window, 0: Unfixed window
-	if (!src.empty()) imshow("DemoWindow", src);    // Show image
+	printImg("source image", src);
 
-	/* 
-	[threshold_type]
-	0: Binary
-	1: Binary Inverted
-	2: Threshold Truncated
-	3: Threshold to Zero
-	4: Threshold to Zero Inverted
-	*/
+	thresholdImg(src, dst, thresholdVal);
 
-	int threshold_value = 125;
-	int threshold_type	= 0;
-	int const max_value = 255;
-	int const max_type	= 4;
-	int const max_binary_value = 255;
+	morphImg(dst, dstMorph, "dilate", 13);
 
-	threshold(src, dst, threshold_value, max_binary_value, threshold_type);
-
-	// Create a window to display results
-	namedWindow("ThreshWIndow", CV_WINDOW_AUTOSIZE); //CV_WINDOW_AUTOSIZE(1) :Fixed Window, 0: Unfixed window
-	imshow("ThreshWIndow", dst); // Show image
+	printImg("dst image", dst);
+	printImg("Morphology", dstMorph);
 
 	waitKey(0);//Pause the program
+
 	return 0;
 }

@@ -38,7 +38,7 @@ Github : https://github.com/HanMinung/DLIP
 
 ### 3.1. Proper range of HSV
 
-​			I found proper range of `[hmin, hmax, smin, smax, vmin, vmax]`to get the binary image which is applied 'inrange' function. Proper value of each components that I found with that technique is as follows :
+​			I found proper range of `[hmin, hmax, smin, smax, vmin, vmax]` with trackbar option to get the binary image which is applied with 'inrange' function. Proper value of each components that I found with that technique is as follows :
 $$
 [hmin, hmax, smin, smax, vmin, vmax] = [0, 179, 0, 255, 144, 255]
 $$
