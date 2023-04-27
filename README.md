@@ -595,3 +595,64 @@ void Morphology_Demo(int, void*){
 
 ```
 
+
+
+## .
+
+## .
+
+## .
+
+
+
+
+
+## Deep Learning
+
+### 1. Activation function
+
+입력을 받아서 활성화 또는 비활성화를 결정하는 데에 사용되는 함수. 
+
+
+
+#### 1.1. Sigmoid function
+
+<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427195725171.png" alt="image-20230427195725171" style="zoom: 67%;" />
+
+* 음수 값을 0에 가깝게 표현하기 때문에, 입력 값이 최종 레이어에서 미치는 영향이 적어진다 : Vanishing Gradient Problem
+* Back-propagation을 계산하는 과정에서는, 활성화 함수의 미분값을 곱하는 과정이 포함되는데, 이 함수의 경우 은닉층의 깊이가 깊다면 오차율을 계산하기 어렵다는 문제가 발생한다. 
+* 또한, 함수의 중심이 0이 아니기 때문에, 학습이 느려질 수 있다.
+
+
+
+#### 1.2. Tanh function
+
+<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427200046786.png" alt="image-20230427200046786" style="zoom:67%;" />
+
+* Hyperbolic tangent function
+
+* 입력값이 작아질수록 출력값은 0에 가까워지고, 입력값이 커질수록 출력값은 1에 가까워진다.
+
+* 입력값이 작아질수록/커질수록 기울기(gradient)는 0에 가까워진다.
+
+* 이 역시, vanishing gradient problem이 발생
+
+  
+
+#### 1.3. ReLU function (Rectified Linear Unit function)
+
+<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427200606557.png" alt="image-20230427200606557" style="zoom:50%;" />
+
+* 앞선 두 activate function이 가지는 gradient vanishing 문제를 해결하기 위한 함수
+* Most commonly used in CNN
+
+
+
+### 2. Deep Neural network
+
+#### 2.1. Notation
+
+<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427211808729.png" alt="image-20230427211808729" style="zoom: 50%;" />
+
+<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427211856659.png" alt="image-20230427211856659" style="zoom: 90%;" />
+
