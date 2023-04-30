@@ -617,7 +617,7 @@ void Morphology_Demo(int, void*){
 
 #### 1.1. Sigmoid function
 
-<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427195725171.png" alt="image-20230427195725171" style="zoom: 67%;" />
+
 
 * 음수 값을 0에 가깝게 표현하기 때문에, 입력 값이 최종 레이어에서 미치는 영향이 적어진다 : Vanishing Gradient Problem
 * Back-propagation을 계산하는 과정에서는, 활성화 함수의 미분값을 곱하는 과정이 포함되는데, 이 함수의 경우 은닉층의 깊이가 깊다면 오차율을 계산하기 어렵다는 문제가 발생한다. 
@@ -627,7 +627,7 @@ void Morphology_Demo(int, void*){
 
 #### 1.2. Tanh function
 
-<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427200046786.png" alt="image-20230427200046786" style="zoom:67%;" />
+![image](https://user-images.githubusercontent.com/99113269/235345910-6f671566-f4da-4ad9-a1ed-5da1e8c634e9.png)
 
 * Hyperbolic tangent function
 
@@ -641,7 +641,7 @@ void Morphology_Demo(int, void*){
 
 #### 1.3. ReLU function (Rectified Linear Unit function)
 
-<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427200606557.png" alt="image-20230427200606557" style="zoom:50%;" />
+![image](https://user-images.githubusercontent.com/99113269/235345923-26e7c87d-b8d2-4cba-b165-b41fd8b05436.png)
 
 * 앞선 두 activate function이 가지는 gradient vanishing 문제를 해결하기 위한 함수
 * Most commonly used in CNN
@@ -652,16 +652,16 @@ void Morphology_Demo(int, void*){
 
 #### 2.1. Notation
 
-<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427211808729.png" alt="image-20230427211808729" style="zoom: 50%;" />
+![image](https://user-images.githubusercontent.com/99113269/235345942-04f08824-e193-4b35-866a-2a8283f399d7.png)
 
-<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427211856659.png" alt="image-20230427211856659" style="zoom: 90%;" />
+![image](https://user-images.githubusercontent.com/99113269/235345957-b92c6bb7-a2da-4c1b-a36b-8801221cd41c.png)
 
 
 
 #### 2.2. Back propagation method
 
-![image-20230430172514852](C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230430172514852.png)
+![image](https://user-images.githubusercontent.com/99113269/235345986-28de18b6-d3be-473c-9b42-2c17ce570749.png)
 
-![image-20230430172535549](C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230430172535549.png)
+![image](https://user-images.githubusercontent.com/99113269/235345994-1463959e-c8a4-47be-9c0b-14231d4cb89d.png)
 
-![image-20230430172550173](C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230430172550173.png)
+![image](https://user-images.githubusercontent.com/99113269/235346004-e07cadb0-1701-4afa-ad13-c90de109b6d9.png)
