@@ -496,7 +496,7 @@ Two different points on a same line in xy plane ( y = mx + c ) intersects in sam
 
 
 
-### Tips
+### Tips about image processing
 
 #### Tip 1 : Showing multiple images in one window
 
@@ -656,3 +656,12 @@ void Morphology_Demo(int, void*){
 
 <img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230427211856659.png" alt="image-20230427211856659" style="zoom: 90%;" />
 
+
+
+#### 2.2. Back propagation method
+
+![image-20230430172514852](C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230430172514852.png)
+
+![image-20230430172535549](C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230430172535549.png)
+
+![image-20230430172550173](C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230430172550173.png)
