@@ -670,7 +670,7 @@ void Morphology_Demo(int, void*){
 
 ### 3. Convolution neural network
 
-<img src="https://user-images.githubusercontent.com/99113269/236402005-fc04a937-bb43-49ff-bc30-92362a64f168.png" alt="image" style="zoom:60%;" />
+<img src="https://user-images.githubusercontent.com/99113269/236402005-fc04a937-bb43-49ff-bc30-92362a64f168.png" alt="image" style="zoom:50%;" />
 
-<img src="https://user-images.githubusercontent.com/99113269/236402250-458cdb2c-2b5d-463b-bb01-0a6f121a63fe.png" alt="image" style="zoom:60%;" />
+<img src="https://user-images.githubusercontent.com/99113269/236402250-458cdb2c-2b5d-463b-bb01-0a6f121a63fe.png" alt="image" style="zoom:50%;" />
 
