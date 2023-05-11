@@ -674,3 +674,19 @@ void Morphology_Demo(int, void*){
 
 <img src="https://user-images.githubusercontent.com/99113269/236402250-458cdb2c-2b5d-463b-bb01-0a6f121a63fe.png" alt="image" style="zoom:50%;" />
 
+
+
+### 4. Inception1 (GOOGLENET)
+
+<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/d5fb473c-6a7e-4004-be76-6484652437c9" alt="image" style="zoom: 50%;" />
+
+<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/781ddba2-f3c2-414d-957d-97dccafb7283" alt="image" style="zoom:50%;" />
+
+### 5. RESNET (Residual neural network)
+
+* Previous CNN structures (e.g. ALEXNET, VGGNET) has vanishing gradient  problem
+* With structure of residual block & shourtcut connection algorithm, the problem was solved.
+* Deeper neural network with 1001 layers does not have any vanishing gradient problem with this algorithm since gradient cannot be under '1' with definition of chain rule.
+
+<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/413c54fa-536a-4e46-8e54-df4228a169b8" alt="image" style="zoom:50%;" />
+
