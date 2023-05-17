@@ -11,6 +11,7 @@ import time
 import os
 import copy
 from set_parameter_requires_grad import set_parameter_requires_grad
+from efficientnet_pytorch import EfficientNet
 
 
 # Now to the most interesting part. Here is where we handle the reshaping of each network. Note, this is not an automatic procedure and is unique to each model. Recall, the final layer of a CNN model, which is often times an FC layer, has the same number of nodes as the number of output classes in the dataset. Since all of the models have been pretrained on Imagenet, they all have output layers of size 1000, one node for each class. The goal here is to reshape the last layer to have the same number of inputs as before, AND to have the same number of outputs as the number of classes in the dataset. In the following sections we will discuss how to alter the architecture of each model individually. But first, there is one important detail regarding the difference between finetuning and feature-extraction.
@@ -80,6 +81,18 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs,num_classes)
         input_size = 299
+        
+    elif model_name == "efficientnet_b7":
+        """ EfficientNet B7
+        Be careful, expects (600, 600) sized images
+        """
+        
+        model_ft = EfficientNet.from_pretrained('efficientnet-b7')
+        set_parameter_requires_grad(model_ft, feature_extract)
+        # Handle the net
+        num_ftrs = model_ft._fc.in_features
+        model_ft._fc = nn.Linear(num_ftrs, num_classes)
+        input_size = 600
 
     else:
         print("Invalid model name, exiting...")
