@@ -1,692 +1,876 @@
-# Deep Learning Image Processing
+# DLIP : Final Project
 
-* writer : HanMinung
-* School of Mechanical and Control Engineering, Handong Global University
-* Date : 2023 spring semester
-* Image processing
-  * software : C++ , Visual Studio 2019 , OpenCV 3.5.13
-* Deep Learning with YOLO
-  * CUDA
-  * cuDNN
-  * pyTorch
-* Purpose 
-  * Information on the fundamental principles of various techniques in classical image processing
-  * Object detection using deep learning model : YOLO
+* subject : Implementation of emergency braking system for automous vehicles using deep learning object detection and sensor calibration
+* name  : Min-Woong Han, Seung-eun Hwang
+* Final project 
+* Spring semester, 2023
+* Class : Deep Learning Image Processing
+* Instructor : prof. Young-Keun Kim
 
----
+--------
 
 [TOC]
 
-## Image processing
+## **1. Introduction**
 
-### 1. CNN
+​		  In autonomous driving at a stage where human judgment and intervention are completely eliminated, the vehicle operates solely based on real-time perception information from sensors. Therefore, accurate sensor data is crucial for safe autonomous driving, enabling efficient and rapid decision-making and response. As a background for this final project, a case from Uber's autonomous driving test in 2018, where a pedestrian crossing illegally was involved in a fatal accident with the test vehicle, has been selected. Dealing with jaywalking pedestrians requires precise perception, as well as calculating the distance and direction of the objects, followed by the vehicle's ability to make its own judgment and apply emergency braking if necessary. Recognizing the importance of testing the vehicle's capability in handling such scenarios, the experiment was conducted. Throughout whole process, camera sensors were used for object perception, and 2D LiDAR sensors were utilized for distance measurement. Initially, YOLO V8 was employed for object detection due to its advantage of achieving high accuracy with a smaller dataset compared to YOLO V5, provided accurate labeling is performed. Subsequently, a sensor calibration issue arises when fusing the information from the 2D LiDAR and the camera, as the coordinate axes of each sensor need to be unified. To address sensor calibration, intrinsic matrices representing the internal parameters of the camera and extrinsic matrices compensating for the sensor's position and orientation differences need to be defined, and detailed processes for calculating them are provided. Once these processes are successfully executed, the world coordinates of the LiDAR are projected onto the camera's pixel coordinates. After testing and verification, the planned experiments can be conducted. The text introduces the requirements, object recognition process, sensor calibration, and strategies for implementing an emergency braking system.
 
-- Convolution Neural Network
-
-* Convolution 연산을 통한 이미지 데이터 filtering
-
-* CNN은 이미지에서의 특징 추출에서 적극적으로 활용된다.
-
-  * Kernel 이라는 필터를 이용하기 떄문
-
-  <img src="https://user-images.githubusercontent.com/99113269/224066554-fbcdd0da-323e-497e-b05b-cb28a84f2e83.png" alt="image" style="zoom:50%;" />
-
-* 커널을 이용해 원본 이미지에 convolution을 취하면 필터의 트성에 맞게 강조된 이미지를 얻을 수 있다.
-
-* Stride
-
-  * 필터링은 필터를 이미지에 놓고 움직이면서 실시하게 된다.
-
-  * 이때, 필터가 한번에 움직이는 거리를 stride라고 한다.
-
-  * 원본 이미지의 크기가 mxm이고, 필터 커널의 크기가 nxn, stride = s 라고하면, 필터링을 통해 얻은 이미지의 크기는  (m-n)/s+1 x (m-n)/s+1 이 된다. 
-
-  * 예시
-
-    <img src="https://user-images.githubusercontent.com/99113269/224068090-2f7d4c22-0fec-4642-b865-2231c8db894b.png" alt="image" style="zoom:50%;" />
-
-* Padding
-
-  * Convolution 연산을 수행하기 전 Input image 주변에 특정 값을 채워 사이즈를 늘리는 과정
-  * 이미지의 가장자리 픽셀 정보가 유실되는 것을 방지하기 위한 기능
-  * feature map의 크기가 줄어드는 것을 방지
-  * 주로, 주변부에 아무런 값이 없는 0을 넣는 zero-padding을 많이 사용
-
-* n x nfilter window : 총 power(n,2)에 해당하는 곱연산을 수행하게 된다.
+<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/66851cb1-076c-4605-8980-bbfa1066f54e" alt="image" style="zoom: 67%;" />
 
 
 
-### 2. Spatial filter
-
-#### 2.1. 2D convolution of filter window
 
 
+## **2. Requirements**
 
-<img src="https://user-images.githubusercontent.com/99113269/224071475-aed154f7-2eb4-4abc-b34c-9160c4baf982.png" alt="image" style="zoom:50%;" />
+### 2.1. Hardware
 
-* General representation : normalization
+- Used platform
 
-  <img src="https://user-images.githubusercontent.com/99113269/224071750-44928357-66be-41d3-ab8f-ac92a85d4988.png" alt="image" style="zoom:50%;" />
+  <img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/7e539d05-7c58-430c-9099-4a4c3649f5c1" alt="image" style="zoom: 33%;" />
 
-* dividing factor : total summation of image kernel
+- Sensor Information
 
-  <img src="https://user-images.githubusercontent.com/99113269/224072161-a8916299-2ff9-4c29-9f85-d565e7d46e59.png" alt="image" style="zoom:50%;" />
+  <img src="https://github.com/HanMinung/DLIP/assets/99113269/204a4998-9f63-413c-8dec-3a2f32d84f5e" alt="image" style="zoom: 90%;" />
 
+  - 2D lidar
 
+    - 0.25 horizontal resolution
 
-#### 2.2. Commonly used spatial filter mask
+    - 1 vertical channel (2D sensor)
 
-- average of the pixels in the neighborhood of the filter mask.
+    - Information available : azimuth, according distance
 
-- Removal of small details by blurring and reduces sharp intensity of noise
+    - xyz coordinate (sensor centered)
 
-  <img src="https://user-images.githubusercontent.com/99113269/224074476-353d0d3b-f459-4fd2-b0d2-776c69dbedd3.png" alt="image" style="zoom:40%;" />
+    - 50 Hz sampling frequency
 
+      
 
+  - Camera (Logitech BRIO 4K)
 
-##### 2.2.1. Sharpening filter
+    - Image 60Hz
 
-* Method using derivative
+    - Pixel coordinate
 
-  * intensity가 잘보이게 하기 위해, 2차 미분을 사용한다.
+    - Setting : 640 x 480 image width, height
 
-  * 2차 미분 중에서도, Laplacian 미분(linear isotropic operator)을 적용한다.
+    - About 10ms ~ 15ms
 
-    <img src="https://user-images.githubusercontent.com/99113269/224081842-8292fbfb-1e73-46d4-a86b-d85bda090a5d.png" alt="image" style="zoom:50%;" />
+      
 
-  * Formation of filter
+  - Laptop spec
 
-    <img src="https://user-images.githubusercontent.com/99113269/224082832-97a1c675-35c6-4259-a415-282f25755034.png" alt="image" style="zoom:50%;" />
+    - Windows 10 pro (64 bit)
+    - Prosessor : 11th Gen Intel i7 - 11800H
+    - NVIDIA GEFORCE RTX 3070
 
-  * To sharpen an image, add Laplacian image to the original image
-
-    <img src="https://user-images.githubusercontent.com/99113269/224082990-26bf17c7-c7bd-4583-9a1f-4881924dcb6a.png" alt="image" style="zoom:50%;" />
-
-  * c : scaling factor
-
-  * Sample code
-
-    ```c++
-    int main() {
-    	Mat image, laplacian, abs_laplacian, sharpening;
-    	image = imread("path/Moon.png", 0);
     
-    	// calculates the Laplacian of an image
-    	// - image: src, laplacian: dst, CV_16S: desire depth of dst,
-    	// - 1: aperture size used to compute second-derivative (optional)
-    	// - 1: optional scale factor for the computed Laplacian values
-    	// - 0: optional delta value that is added to the result
-    	Laplacian(image, laplacian, CV_16S, 1, 1, 0);
-    	convertScaleAbs(laplacian, abs_laplacian);
-    	sharpening = abs_laplacian + image;
-    	
-        imshow("Input image", image);
-    	imshow("Laplacian", laplacian);
-    	imshow("abs_Laplacian", abs_laplacian);
-    	imshow("Sharpening", sharpening);
-    	waitKey(0);
-    }
-    ```
+
+### 2.2. Software installation
+
+- Python : 3.10.12
+
+- Cuda : 11.8
+
+- CUDNN : 8.6.0 (for Cuda 11.x version)
+
+- Pytorch : 2.0.0 + cu118
+
+- Torchvision : 0.15.0
+
+- Opencv gpu : 4.6.0 (build with CMAKE)
+
+- YOLO V8
 
   
 
-* Unsharp masking
+### 2.3. Software installation guide
 
-  * original image에서 blurred image(averaged image)를 빼면 shrap한 부분만 검출 할 수 있다.
+#### 2.3.1. Nvidia Graphic Driver Installation
 
-  * unsharp mask = original signal - blurred signal
+1. Search for **Run** in the **Start** menu search bar
 
-  * Sample code
+<img src="https://user-images.githubusercontent.com/91474647/214517442-f494bc9e-52f5-43c7-8992-9e76d64bb575.png" alt="https://user-images.githubusercontent.com/91474647/214517442-f494bc9e-52f5-43c7-8992-9e76d64bb575.png" style="zoom: 50%;" />
 
-    ```c++
-    int main() {
+
+
+2. In the **Open** box, type "dxdiag".
+
+<img src="https://user-images.githubusercontent.com/91474647/214517684-d9ccef59-a72d-4006-99d0-7b1917ba50a5.png" alt="https://user-images.githubusercontent.com/91474647/214517684-d9ccef59-a72d-4006-99d0-7b1917ba50a5.png" style="zoom: 67%;" />
+
+
+
+3. CPU and windows specs
+
+<img src="https://user-images.githubusercontent.com/91474647/214517979-2044703e-bb8d-43f3-8aa5-d81bb4544c79.png" alt="https://user-images.githubusercontent.com/91474647/214517979-2044703e-bb8d-43f3-8aa5-d81bb4544c79.png" style="zoom: 50%;" />
+
+
+
+4. Check user's GPU specs
+
+<img src="https://user-images.githubusercontent.com/91474647/214518261-fd2e89be-491d-4325-8f3b-d90e2844da3d.png" alt="https://user-images.githubusercontent.com/91474647/214518261-fd2e89be-491d-4325-8f3b-d90e2844da3d.png" style="zoom: 67%;" />
+
+
+
+5. Go to the link below and proceed with the installation. Select the specifications of the computer checked above
+
+* link : [NVIDIA graphic driver installation](https://www.nvidia.co.kr/Download/index.aspx?lang=kr)
+
+<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/2b730c8f-3570-4ed2-b2b6-361eeaa3700e" alt="image" style="zoom:67%;" />
+
+
+
+Check the installed graphics driver version. The cuda version on the right is the recommended cuda version, so you don't have to worry about it.
+
+```bash
+nvidia-smi
+```
+
+​	                                                                        <img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/c53c0f7e-f0d0-44d0-bb45-7221feda3e2b" alt="image" style="zoom: 80%;" />
+
+
+
+#### 2.3.2. Cuda 11.8 installation
+
+- download link : [click here](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local)
+- Download process
+
+<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/bb883226-0e25-4e91-835b-b44e3bc5dd1b" alt="image" style="zoom: 80%;" />
+
+```bash
+nvcc -V
+(or)
+nvcc --version
+```
+
+![image](https://github.com/HanMinung/EmbeddedController/assets/99113269/fc5edede-c7c3-46e8-bc18-137d1fbb0737)
+
+
+
+#### 2.3.3. cuDNN 8.6 installation
+
+- download link : [cuDNN installation](https://developer.nvidia.com/rdp/cudnn-archive)
+
+- After decompressing the zip file, copy the files inside the bin, include, and lib files, and paste them to the same file name in cuda that you have installed.
+
+- After copying, you need to set system environment variables to recognize cuDNN.
+
+<img src="https://user-images.githubusercontent.com/91474647/214526915-0de47839-33a5-41c9-a0d8-37388e97d0f8.png" alt="https://user-images.githubusercontent.com/91474647/214526915-0de47839-33a5-41c9-a0d8-37388e97d0f8.png" style="zoom: 45%;" />
+
+- go into environment variables
+
+<img src="https://user-images.githubusercontent.com/91474647/214527154-56916223-80e7-4eab-9215-77f3bd1b7a5e.png" alt="https://user-images.githubusercontent.com/91474647/214527154-56916223-80e7-4eab-9215-77f3bd1b7a5e.png" style="zoom:50%;" />
+
+- Select the bottom path in Environment Variables and enter Edit
+
+  <img src="https://github.com/HanMinung/DLIP/assets/99113269/8556200f-f85b-44c0-97d1-26e6d48bb3af" alt="image" style="zoom: 50%;" />
+
+- Click New and enter the following paths (if your cuda version is different, you can change it to suit your environment)
+
+  ```
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\include
+  C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\lib
+  ```
+
+- After setting the environment variables, be sure to reboot.
+
+
+
+#### 2.3.4. pytorch installation
+
+- Failure to install the appropriate version of Pytorch that is compatible with CUDA can lead to compatibility issues, such as encountering Torch backend errors and other related errors, based on my experience. Therefore, it is crucial to install the suitable versions of Torch and torchvision to ensure proper functionality.
+
+- reference link : [click here](https://pytorch.org/get-started/previous-versions/)
+
+- Command
+
+  ```bash
+  pip install torch==2.0.0+cu118 torchvision==0.15.1+cu118 torchaudio==2.0.1 --index-url https://download.pytorch.org/whl/cu118
+  ```
+
+
+
+#### 2.3.5. Opencv gpu 4.6.0
+
+- download link : [click here](https://cmake.org/download/)
+
+To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by employing the CMake build system. This procedure requires a detailed configuration to match specific hardware requirements, which may differ from one system to another. Those seeking to expedite their calculations are advised to follow the guide provided in the linked resource.
+
+- Please refer to this link to get the further process :
+  - [link1 for reference](https://docs.opencv.org/4.6.0/d5/de5/tutorial_py_setup_in_windows.html)
+  - [link2 for reference](https://darkpgmr.tistory.com/184)
+  - [link3 for reference](https://hanryang1125.tistory.com/10)
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/ddbc045a-273f-4aab-8a60-cba60d8a1ce6" alt="image" style="zoom: 50%;" />
+
+
+
+#### 2.3.6. Checking
+
+- For proper compatibility, results below have to be shown.
+
+- Command
+
+  ```python
+  import torch
+  import torchvision
+  print(torch.cuda.is_available())
+  print(torch.torch.cuda.get_device_name())
+  print(torchvision.__version__)
+  ```
+
+  ![image](https://github.com/HanMinung/DLIP/assets/99113269/92caba04-e74e-476b-9dd4-d1fb146b7b3b)
+
+
+
+
+
+## **3. Program development**
+
+### 3.1. Software architecture
+
+* Process 1 : Lidar interface code (C interface)
+
+* Process 2 : YOLO object detection (Python interface)
+* Process 3 : Lidar, Cam calibration & Further process (Python interface), Make commands to platform
+* Communication technique for data sharing between all projects : shared memory (C to python, Python to Python)
+* All process structure can be schematized as follows :
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/91bc14ce-bb3c-4dd0-bdd1-8a2785d4338c" alt="image" style="zoom:67%;" />
+
+
+
+### 3.2. System flowchart
+
+* Three processes run simultaneously. And each code communicates with other process with `shared memeory` method.
+  1. Lidar interface process for data receiving : 50 Hz sampling frequency real time structure
+  
+  2. Main process : 50 Hz sampling frequency real time structure
+  
+  3. Camera process for deep learning : 40 ~ 70 FPS
+  
+     ![DLIPfinal drawio](https://github.com/HanMinung/DLIP/assets/99113269/54ed67af-ebbd-4172-9e40-40a82a989343)
+  
+     
+
+### 3.3. Sensor calibration
+
+* Coordinate system of each sensors is as follows :
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/6fa237f6-0b25-4b6a-8c82-e0a49e8c536c" alt="image" style="zoom: 67%;" />
+
+* The world coordinate systems of lidar and the camera are defined differently. For instance, as evident from the above Figure, the world coordinate system of the camera defines depth information along the z-axis, whereas lidar sensor defines depth information along the x-axis. Therefore, when defining the rotation matrix, it is necessary to first unify the coordinate axes that are defined differently. 
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/48582bec-b3f3-4e8a-ac2a-ecc2d8e53b28" alt="image" style="zoom:40%;" /><img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230528193306827.png" alt="image-20230528193306827" style="zoom: 70%;" />
+
+* The matrix R is a 3x3 matrix that accounts for the difference in orientation between the two sensors and provides the necessary calibration. The matrix T, on the other hand, is a 3x1 matrix that considers the physical displacement between the two sensors and provides the corresponding calibration. As for the intrinsic parameter matrix mentioned earlier, it represents the distortion correction matrix specific to the camera itself. Ultimately, the most crucial part of the calibration process is accurately determining the Extrinsic matrix (R|t), which takes into account the positional and rotational differences between the two sensors. In the case of the camera sensor, it is not facing directly forward but rather angled approximately 20 degrees below the front-facing position. Therefore, the alpha value, required to compute the rotation matrix, is set to the converted radian value of 110 degrees. As there is no deviation in the left-right orientation between the two sensors, the Beta and Gamma values can be set to 0 for the calibration process. Python code that calculates extrinsic matrix was made like below.
+
+  ```python
+  self.D2R         	= pi/180
+  self.Alpha          = 110 * self.D2R
+  self.Beta           = 0 * self.D2R
+  self.Gamma          = 0 * self.D2R
+          
+  self.rotX = np.array([[1 ,          0             ,              0        ], 
+                        [0 ,   np.cos(self.Alpha)   ,   -np.sin(self.Alpha) ], 
+                        [0 ,   np.sin(self.Alpha)   ,    np.cos(self.Alpha) ]])   
+  
+  self.rotY = np.array([[np.cos(self.Beta)  ,   0  ,    np.sin(self.Beta) ], 
+                        [    0              ,   1  ,        0             ], 
+                        [-np.sin(self.Beta) ,   0  ,    np.cos(self.Beta) ]])
+  
+  self.rotZ = np.array([[np.cos(self.Gamma)    ,   -np.sin(self.Gamma) ,    0 ], 
+                        [np.sin(self.Gamma)    ,   np.cos(self.Gamma)  ,    0 ], 
+                        [    0                 ,        0              ,    1 ]])    
+          
+  self.rotMat   = self.rotZ @ self.rotY @ self.rotX
+          
+  self.transMat = np.array([[      0      ],
+                            [self.realHeight],
+                            [self.realRecede]]) 
+          
+  self.M_ext = np.hstack((self.rotMat, self.transMat))
+  
+  self.M_int = np.array([[self.focalLen/self.sx , 0                       , self.ox ],    
+                         [0                     , self.focalLen/self.sy   , self.oy ],
+                         [0                     , 0                       , 1       ]])  
+  ```
+  
+  
+
+* Translation matrix that calibrates the physical locationcal difference of two sensors can be calculated as follows :
+
+  <img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/510c9cc1-c716-4403-81a0-cc9660778c04" alt="image" style="zoom: 67%;" />
+
+​			The calibration of the positional difference between the two sensors is achieved using a translation matrix. By applying a rotation matrix to the world coordinate system, the rotation transformation is applied. Then, the physical positional difference is corrected. In this case, both sensors are not facing directly forward. The camera sensor is angled approximately 20 degrees below the front-facing position. Therefore, instead of using the recede and height values mentioned in the diagram, the translational matrix should be defined using the real recede and real height values to complete the extrinsic matrix. All the mathematical processes are specified above. 
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/bdeb6d90-d8f3-42c4-bad9-88790b7c8573" alt="image" style="zoom:67%;" />
+
+
+
+### 3.6. Calibration result
+
+​			As the intrinsic matrix and extrinsic matrix are multiplied with the world coordinate system, the world coordinate system is projected onto the camera's normalized coordinate system (in pixel units). According to the equation, the extrinsic matrix (Rlt) is first multiplied with the world coordinate system of the lidar. This means that a rotational transformation is applied to the lidar's world coordinate system, followed by the addition of the translational matrix to correct for the positional difference. As a result, the data defined in the lidar's coordinate system is mapped to the camera's world coordinate system by the extrinsic matrix. Finally, when the intrinsic matrix composed of the camera's internal parameters is multiplied, the data is projected onto the normalized coordinate system.
+
+Through this entire process, the actual coordinates of the lidar are transformed into the image pixel coordinates of the camera. The figure below shows the results of projecting the 2D lidar's horizontal points onto the camera's normalized coordinate system (converted to pixel coordinates). The yellow dots represent the projected results of the lidar's actual normalized coordinate system.
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/46458191-d801-4003-9b31-4adcb779e3e1" alt="image" style="zoom:67%;" />
+
+
+
+### 3.7. Model training for object detection
+
+​		The deep learning model used in our operations was the eighth version of You Only Look Once (YOLO v8). This model has been widely adopted for object detection tasks due to its efficiency and accuracy. The data used for training the YOLO model was obtained from direct photography and then labeled accordingly. Approximately 400 instances were used to create the training set. We employed Roboflow, an efficient tool for image annotation, to annotate the dataset in segment mode.
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/646b4d71-f50a-4db5-a0a6-f6c84871277c" alt="image" style="zoom: 80%;" />
+
+Transfer learning was utilized during the model training process. We used a pretrained model, [yolov8l-seg.pt](http://yolov8l-seg.pt/), and adapted it to our custom dataset. This technique allows for the leveraging of pre-existing neural networks, saving time and computational resources while also often improving the model's performance on the specific task.
+
+```python
+from ultralytics import YOLO
+model = YOLO("yolov8l-seg.pt")
+model.train(task="segment", data="robowflow를 통해 다운받은 yaml파일 경로", 
+						batch=-1, 
+						imgsz=640, 
+						device=0, 
+						plots=True, 
+						save=True, 
+						epochs = 120)
+```
+
+
+
+### 3.8. Object detection, calculation of relative coordinate
+
+If all the previous steps have been successfully executed, the list of known information includes:
+
+- The original world coordinates of the lidar data.
+- Point cloud data projected onto the camera's normalized coordinate system.
+- The centroid of the bounding box of objects detected by the camera.
+
+The process for extracting the real relative coordinates of the detected objects using the above information is as follows:
+
+1. Define the projected point cloud data's x-coordinate as 'projection X' and the y-coordinate as 'projection Y'.
+2. Extract the indices of 6 points that satisfy the following conditions and consider them as candidate points:
+   - abs(projection X - bounding box centroid x-coordinate) < 15
+   - (projection Y > bounding box centroid y-coordinate - 20)
+3. By doing so, indices of the projection data that fall within the bounding box can be obtained. Accessing the same indices in the actual point cloud data allows user to calculate the relative coordinates and actual distance of detected object with deep learning algorithm.
+
+All processes above enables the extraction of the relative coordinates and actual distance by matching the projection data with the point cloud data using the identified indices. The visualization of the aforementioned processes and the accuracy evaluation results for distance calculation are as follows:
+
+![image](https://github.com/HanMinung/NumericalProgramming/assets/99113269/290b2e89-c1e2-460f-a350-136f0347d45a)
+
+According to the described algorithm, it is possible to calculate accurate distance and relative coordinates for recognized objects. To ensure a reliable validation of the calibration, the positions of a single rubber cone were changed four times, and the distances were calculated and verified. Cases 5 and 6 demonstrate that even with multiple objects present, it is possible to calculate the distances and relative coordinates for all of them, showcasing the capability to handle multiple objects. This provides evidence for the validity of the calibration results for the two sensors.
+
+**<u>case 1</u>**
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/fb55e801-56ef-4609-8c0c-7612419d38d8" alt="image" style="zoom:67%;" />
+
+**<u>case 2</u>**
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/37122dab-8d9d-4e90-bcce-111afdd3fbc3" alt="image" style="zoom:67%;" />
+
+<u>**case 3**</u>
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/aaec93f6-eccd-4e9b-acba-d609f371e40d" alt="image" style="zoom:67%;" />
+
+<u>**case 4**</u>
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/13f0753a-dab9-432f-871f-3c9535b90125" alt="image" style="zoom:67%;" />
+
+<u>**case 5**</u>
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/8fa1f3a2-913e-4fd4-92e0-d2a096698a1e" alt="image" style="zoom:67%;" />
+
+<u>**case 6**</u>
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/772235dc-c14b-4e98-86cc-34708c7130d8" alt="image" style="zoom:67%;" />
+
+The measured distances and the distances of the actual recognized objects were quantified and summarized for cases 1 to 4. The percentile relative errors for all cases were below 1%. While calculating the relative error against the pre-calibrated values for the original point cloud data may not be highly meaningful, the fact that all distances for each case were properly calculated indicates the validity of the calibration process.
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/6236f3dd-a332-4701-9387-2a847ad64171" alt="image" style="zoom: 80%;" />
+
+
+
+
+
+### 3.9. Emergency braking system implementation
+
+​			The purpose of this experiment was to implement a system that measures the distance and azimuth angle of sudden obstacles and responds appropriately. The vehicle operated in auto mode, relying solely on the implemented algorithm. To ensure safety during the experiment, a human was replaced with a rubber cone. The reason for training the deep learning model with rubber cone data is also for this purpose. The experiment consisted of a total of 10 trials, where the rubber cone would suddenly appear, and the system would respond accordingly. The following criteria were established for the experiment:
+
+- If the rubber cone is not detected, the vehicle maintains its current speed and continues normal driving.
+- If the rubber cone is detected, the system shows the number of cones detected and calculates the distance and azimuth angle for each cone.
+- If the rubber cone comes within a range of 1.5m from the vehicle, the system detects it, initiates an emergency stop, and displays a warning flag to indicate the emergency braking.
+
+​			
+
+​	                                    <img src="https://github.com/HanMinung/DLIP/assets/99113269/482a1c5b-d09f-45df-a369-88657e1579a8" alt="image" style="zoom:67%;" />
+
+The results of the experiment are presented in Section 4: Results. When the experiment was conducted for a total of 10 trials, the emergency braking system functioned appropriately in all 10 instances. Each time, the system accurately calculated the distance and azimuth angle for the obstacles.
+
+<img src="https://github.com/HanMinung/DLIP/assets/99113269/85e17451-404b-46d6-8d86-f39ba3f9519e" alt="image" style="zoom: 80%;" />
+
+
+
+
+
+## **4. Result**
+
+Demo video link : [click here](https://youtu.be/Zah9VBC8uuM)
+
+[![Emergency braking system](http://img.youtube.com/vi/Zah9VBC8uuM/0.jpg)](https://www.youtube.com/watch?v=Zah9VBC8uuM) 
+
+
+
+
+
+## **5. Discussion and analysis**
+
+​			Through deep learning, object detection was achieved, and since it is not possible to directly measure the distance to the objects using a single camera, an additional sensor, a 2D LiDAR, was used in the experiment. Due to the different coordinate systems defined for each sensor, sensor calibration was conducted. The calibration enabled distance extraction, and after verification, the ultimate goal of implementing an emergency braking system to handle sudden obstacles was successfully achieved. When conducting a total of 10 experiments, real-time distance and azimuth angle measurements were successfully carried out for the recognized objects, and emergency braking was performed as intended in each experiment.
+
+Since a 2D LiDAR was used, there could be a challenge when dealing with actual cyclists or pedestrian instead of rubber cones, as the points projected onto the object might or might not actually be on the person. However, this can be addressed through appropriate post-processing when 2D lidar is used. If the post-processing is unstable, it may be possible to use a 3D LiDAR to perform sensor calibration using the same process and process the data based on accurate point cloud data. The choice between these methods requires careful consideration. Using a 3D LiDAR can provide the advantage of accurate post-processing based on 3D point clouds, but it also brings the challenge of handling a large amount of point cloud data, which may slow down the sampling frequency of the main system that can cause delay of transferred commands to the platform. However, considering the trade-offs and advantages, choosing the appropriate sensor based on individual strengths and weaknesses can lead to a more accurate system implementation.
+
+
+
+## **6. Appendix** 
+
+* Main code is updated here & Please contact us if you need other codes for proper running !
+* Main code (sensor calibration & platform control)
+
+```python
+# -------------------------------------------------------------------
+#
+#   @   DLIP final project code  :   Implementation of emergency braking system for automous vehicles
+#   @   Update     				 :   2023.6.11
+#   @   Purpose    			     :   Lidar Cam calibration
+#
+# -------------------------------------------------------------------
+
+from module import *
+from serial_node import *
+
+
+global lidarDist, azim
+lidarDist  = []
+azim = np.linspace(-5,185,761)
+
+
+class READ_DATA(ct.Structure):
+    
+    _fields_ = [("xCoordinate",ct.c_double*761),("yCoordinate",ct.c_double*761),("dist",ct.c_double*761),("angle",ct.c_double*761)]
+         
+         
+class Lidar_SharedMem :
+    
+    def __init__(self):
         
-    	Mat image, avg_image, unsharp_mask, sharpening;
-    	image = imread("path/Moon.png", 0);
-    	unsharp_mask.convertTo(unsharp_mask, CV_16S);
-    	sharpening.convertTo(unsharp_mask, CV_16S);
-    
-    	blur(image, avg_image, Size(9, 9));
-    	unsharp_mask = image - avg_image;
-    	sharpening = image + (0.5 * unsharp_mask);
-    
-    	imshow("Input image", image);
-    	imshow("Sharpening", sharpening);
-    
-    	waitKey(0);
-    }
-    ```
+        self.is_lidarSM = False
 
-    
-
-
-
-#### 2.3. Filter implementation in C++
-
-* Comparison of effect of each filters
-
-  * Original image
-
-    <img src="https://user-images.githubusercontent.com/99113269/224306172-8c21e8f3-5166-44e8-9dbf-36e9b9980499.png" alt="image" style="zoom:50%;" />
-
-  * Blur, Gaussian blur, Median blur
-
-    ```c++
-    size : kernel size
-    
-    /* Blur */
-    cv::blur(src, dst, cv::Size(i, i), cv::Point(-1, -1));
-    
-    /* Gaussian Filter */
-    cv::GaussianBlur(src, dst, cv::Size(i, i), 0);
-    
-    /* Median Filter */
-    cv::medianBlur(src, dst, 3);
-    ```
-
-    * Result
-
-      <img src="https://user-images.githubusercontent.com/99113269/224307615-c20dd1e4-5506-4eb8-a89a-89c718a095db.png" alt="image" style="zoom: 67%;" />
-
-  * Laplacian filter & Result
-
-    ```c++
-    /* Laplacian Filter */
-    int kernel_size = 3;
-    int scale		= 1;
-    int delta		= 0;
-    int ddepth		= CV_16S;
-    
-    cv::Laplacian(src, dst, ddepth, kernel_size, scale, delta, cv::BORDER_DEFAULT);
-    src.convertTo(src, CV_16S);
-    cv::Mat result_laplcaian = src - dst;
-    result_laplcaian.convertTo(result_laplcaian, CV_8U);
-    
-    namedWindow("Laplacian", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Laplacian", result_laplcaian);
-    ```
-
-    <img src="https://user-images.githubusercontent.com/99113269/224308231-f8cdbd42-5ddd-4d74-9095-7e571da68818.png" alt="image" style="zoom:45%;" />
-
-
-
-### 3. Thresholding& Morphology
-
-----
-
-#### 3.1. T(r)  :  s(i, j) = T(r( i, j ))
-
-* Changes the intensity of individual pixels, from level r (input) to s (output)
-
-* Histogram : Probability of the occurrence of intensity level r_k
-
-  <img src="https://user-images.githubusercontent.com/99113269/224997865-f13c5a02-5ddf-4a02-8790-c66c5affb0ce.png" alt="image" style="zoom: 50%;" />
-
-
-
-#### 3.2. Histogram equalization
-
-##### 3.2.1. Definition
-
-* For object segmentation, it is preferable to have a high contrast image
-
-  <img src="https://user-images.githubusercontent.com/99113269/224998430-9bedeb09-cb94-4b61-8413-9fa155339147.png" alt="image" style="zoom: 38%;" />
-
-##### 3.2.2. Local Histogram equalization
-
-* Divide image into sections and apply histogram statistics locally for image enhancement
-
-  <img src="https://user-images.githubusercontent.com/99113269/224999116-59c610c6-926e-4eac-8c0b-c0cec180bc4c.png" alt="image" style="zoom:38%;" />
-
-* Global thresholdong : Basic global thresholding / Otsu's method
-
-  Local thresholding : Variable threshold values for each sub-window
-
-
-
-##### 3.2.3. Global Binary Thresholding
-
-* Different methods for thresholding (openCV functions)
-
-<img src="https://user-images.githubusercontent.com/99113269/225000133-175c070d-69a4-4605-b5b6-1a761dd4b395.png" alt="image" style="zoom:40%;" />
-
-* Apply when the object and background has distinct intensity distribution
-
-* Minimize the average error occurred om segmented groups
-
-* An iterative algorithm of finding T
-
-  - Initial estimation of T ( usually mean of image intensity )
-
-  - segment the image using T
-
-  - find mean of Ga and G2
-
-  - compute new T value
-
-  - repetition
-
-    <img src="https://user-images.githubusercontent.com/99113269/225001124-e515d766-0fd4-41d7-8e4a-17561807aae4.png" alt="image" style="zoom:50%;" />
-
-
-
-
-
-##### 3.2.4. Optimum global threshold - Otsu method
-
-* Optimum threshold by maximizing the between-class variance
-
-* Algorithm for finding critical point without any repetition
-
-* 임계값을 임의로 정해 픽셀을 두 부류로 나누고 두 부류의 명암 분포를 구하는 작업을 반복
-
-* 모든 경우의 수 중에서 두 뷰류의 명암 분포가 가장 균일할 때의 임계값을 선택한다.
-
-* Procedure
-
-  * 히스토그램에서 가중치 분산을 최소화한 결과로 주어진 임계값 t를 사용하여 구 클래스로 분리한다. 
-
-  * Within class variance
-
-    <img src="https://user-images.githubusercontent.com/99113269/225005401-3e4b7ede-6553-4363-b865-7ae899295a7f.png" alt="image" style="zoom:50%;" />
-
-  * Within class variance가 최소가 되는 t값을 찾는 것이다. 
-
-  * 따라서, 다음 Between-class variance라는 개념을 새로 정의한다.
-
-    <img src="https://user-images.githubusercontent.com/99113269/225006411-df3a7e0d-5340-4a17-8690-045192a31906.png" alt="image" style="zoom: 33%;" />
-
-    <img src="https://user-images.githubusercontent.com/99113269/225007832-b69deabd-e91c-46e3-b43d-8b36f4dc1ef1.png" alt="image" style="zoom: 50%;" />
-
-
-
-
-
-##### 3.2.5. Local thresholding
-
-- Apply thresholding differently on segment of images
-
-  <img src="https://user-images.githubusercontent.com/99113269/225009152-b65a24f2-60a2-48f7-b6fd-a79d856b7179.png" alt="image" style="zoom:40%;" />
-
-
-
-
-
-
-
-#### 3.3. Morphology
-
-* After the threshold, small pieces of broken segments are seen
-* There exists two methods : Dilation, Erosion
-
-
-
-##### 3.3.1. Dilation
-
-* Definition : LOGIC OR
-* 하나라도 겹치면 1로 처리
-* Effect : thickens / Grows objects, used for bridging gap
-
-<img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230314222417841.png" alt="image-20230314222417841" style="zoom:50%;" />
-
-
-
-##### 3.3.2. Erosion
-
-* Definition : AND logic
-
-* 모두 겹쳐야 1로 처리
-
-* Erosion example
-
-  <img src="https://user-images.githubusercontent.com/99113269/225014804-ddecad21-9ff0-43ed-b652-329251e622b1.png" alt="image" style="zoom:50%;" />
-
-
-
-##### 3.3.3. Opening and Closing
-
-* Opening
-
-  * To smooth the contour of an object, eliminate thin protrusions.
-
-  * erosion of A by B  --> dilate by B
-
-  * Erosion을 하여 잔 점들을 모두 없애고, 후에 dilate를 진행
-
-    <img src="https://user-images.githubusercontent.com/99113269/225015620-b7cdc878-7b70-4ae5-8be5-e2cdee1305e7.png" alt="image" style="zoom: 67%;" />
-
-    
-
-* Closing
-
-  * Dilate A by B --> Erode by B
-
-  * Effect ( refer below example )
-
-    <img src="https://user-images.githubusercontent.com/99113269/225015930-ae0c9ad1-fc5c-4792-bd5f-b0823acc62a9.png" alt="image" style="zoom: 42%;" />
-
-
-
-
-
-
-
- #### 3.4. Sample  code
-
-##### 3.4.1. Threshold function
-
-```c++
-[threshhold - type]
-	0: Binary
-	1: Binary Inverted
-	2: Threshold Truncated
-	3: Threshold to Zero
-	4: Threshold to Zero Inverted
+    def Lidar_SMopen(self) :
         
-- Function implementation
-threshold(src, dst, threshold_value, max_binary_value, threshold_type);
-```
+        self.FILE_MAP_ALL_ACCESS  = 0x000F001F
+        self.FILE_MAP_READ        = 0x0004
+        self.INVALID_HANDLE_VALUE = -1
+        self.SHMEMSIZE            = 0x100
+        self.PAGE_READWRITE       = 0x04
+        self.TRUE  = 1
+        self.FALSE = 0
+
+        self.kernel32_dll               = ct.windll.kernel32
+        self.msvcrt_dll                 = ct.cdll.msvcrt  # To be avoided
+
+        self.CreateFileMapping          = self.kernel32_dll.CreateFileMappingW
+        self.CreateFileMapping.argtypes = (wt.HANDLE, wt.LPVOID, wt.DWORD, wt.DWORD, wt.DWORD, wt.LPCWSTR)
+        self.CreateFileMapping.restype  = wt.HANDLE
+
+        self.OpenFileMapping            = self.kernel32_dll.OpenFileMappingW
+        self.OpenFileMapping.argtypes   = (wt.DWORD, wt.BOOL, wt.LPCWSTR)
+        self.OpenFileMapping.restype    = wt.HANDLE
+
+        self.MapViewOfFile              = self.kernel32_dll.MapViewOfFile
+        self.MapViewOfFile.argtypes     = (wt.HANDLE, wt.DWORD, wt.DWORD, wt.DWORD, ct.c_ulonglong)
+        self.MapViewOfFile.restype      = wt.LPVOID
+
+        self.memcpy                     = self.msvcrt_dll.memcpy
+        self.memcpy.argtypes            = (ct.c_void_p, ct.c_void_p, ct.c_size_t)
+        self.memcpy.restype             = wt.LPVOID
+
+        self.UnmapViewOfFile            = self.kernel32_dll.UnmapViewOfFile
+        self.UnmapViewOfFile.argtypes   = (wt.LPCVOID,)
+        self.UnmapViewOfFile.restype    = wt.BOOL
+
+        self.CloseHandle                = self.kernel32_dll.CloseHandle
+        self.CloseHandle.argtypes       = (wt.HANDLE,)
+        self.CloseHandle.restype        = wt.BOOL
+
+        self.GetLastError               = self.kernel32_dll.GetLastError
+
+        self.rfile_mapping_name_ptr = ct.c_wchar_p("Lidar_smdat_ReadData")
+
+        self.rbyte_len = ct.sizeof(READ_DATA)    
+
+        self.rmapping_handle = self.OpenFileMapping(self.FILE_MAP_ALL_ACCESS, False, self.rfile_mapping_name_ptr)
+        if not self.rmapping_handle:
+            print("Could not open file mapping object: {:d}".format(self.GetLastError()))
+            raise ct.WinError()
+
+        self.rmapped_view_ptr = self.MapViewOfFile(self.rmapping_handle, self.FILE_MAP_ALL_ACCESS, 0, 0, self.rbyte_len)
+        if not self.rmapped_view_ptr:
+            print("Could not map view of file: {:d}".format(self.GetLastError()))
+            self.CloseHandle(self.rmapping_handle)
+            raise ct.WinError()
+        
+        self.is_lidarSM = True
+        
+        print("Shared memory with lidar Interface program opened ...!")
+
+    def Yolo_SMopen(self) :
+        
+        self.is_yoloSM  = True
+        print("Shared memory with YOLO program opened ...!")
+        
+    def receiveDist(self):
+        
+        global lidarDist
+
+        if self.is_lidarSM == True:
+            
+            read_smdat = READ_DATA()
+            rmsg_ptr   = ct.pointer(read_smdat)
+            self.memcpy(rmsg_ptr,self.rmapped_view_ptr,self.rbyte_len)
+            lidarDist   = read_smdat.dist
+            
+    def sharedmemory_close(self):
+        self.UnmapViewOfFile(self.wmapped_view_ptr)
+        self.CloseHandle(self.wmapping_handle)
+        self.UnmapViewOfFile(self.rmapped_view_ptr)
+        self.CloseHandle(self.rmapping_handle)
 
 
 
-##### 3.4.2. Track bar
+class PROJECTION :
 
-* Trackbar의 경우, interrupt와 같이 변화가 있을때 마다 demo 함수가 실행이 된다.
+    def __init__(self) :
+        
+        self.colorYellow    = (25, 255, 255)
+        self.colorWhite     = (255, 255, 255)
+        self.colorRed       = (0, 0, 255)
+        self.colorBlue      = (255, 0, 0)
+        self.colorGreen     = (0, 255, 0)
 
-```c++
-// [Trackbar variable]
-int threshold_value = 0;
-int threshold_type	= 0;
-int Cval = 0;
-int morphology_type = 0;
+        self.D2R            = pi/180
+        self.R2D            = 180/pi
+        
+        self.Alphadeg       = 109.5
+        self.Alpha          = self.Alphadeg * self.D2R
+        self.Beta           = 0 * self.D2R
+        self.Gamma          = 0 * self.D2R
+        
+        self.camHeight      = 0.93
+        self.camRecede      = 0.77
+        self.focalLen       = 0.00367
+        self.imgWidth       = 640
+        self.imgHeight      = 480
+        self.fovX           = 60.92 * pi/180
+        self.fovY           = 53.1432  * pi/180
+        self.ox             = self.imgWidth/2                                              
+        self.oy             = self.imgHeight/2
+        self.sx             = self.focalLen * math.tan(0.5 * self.fovX)/(0.5 * self.imgWidth);      
+        self.sy             = self.focalLen * math.tan(0.5 * self.fovY)/(0.5 * self.imgHeight);   
+        
+        self.realHeight     = sqrt(self.camHeight**2 + self.camRecede**2) * sin(atan(self.camHeight/self.camRecede) - (self.Alphadeg - 90) * self.D2R)
+        self.realRecede     = sqrt(self.camHeight**2 + self.camRecede**2) * cos(atan(self.camHeight/self.camRecede) - (self.Alphadeg - 90) * self.D2R)
+        
+        self.projectionX    = []
+        self.projectionY    = []
+        self.lidarX         = []
+        self.lidarY         = []
+        
+        self.lidarxList     = []
+        self.lidaryList     = []
+        
+        self.rotX = np.array([[1 ,          0             ,              0        ], 
+                              [0 ,   np.cos(self.Alpha)   ,   -np.sin(self.Alpha) ], 
+                              [0 ,   np.sin(self.Alpha)   ,    np.cos(self.Alpha) ]])   
 
-int const max_value = 255;
-int const max_type	= 6;
-int const max_C = 10;
-int const max_binary_value = 255;
+        self.rotY = np.array([[np.cos(self.Beta)  ,   0  ,    np.sin(self.Beta) ], 
+                              [    0              ,   1  ,        0             ], 
+                              [-np.sin(self.Beta) ,   0  ,    np.cos(self.Beta) ]])
 
-// [Trackbar strings]
-String window_name		= "Threshold & Morphology Demo";
-String trackbar_type	= "Thresh Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero 								   Invertd \n 5: Otsu method";
-String trackbar_value	= "Thresh Value";
-String trackbar_morph	= "Morph Type 0: None \n 1: erode \n 2: dilate \n 3:  \n 4: open";
-
-// Create trackbar to choose type of threshold
-createTrackbar(trackbar_type,	window_name, &threshold_type,	max_type,	Threshold_Demo);
-createTrackbar(trackbar_value,	window_name, &threshold_value,	max_value,	Threshold_Demo);
-createTrackbar(Cvalue, window_name, &Cval, max_C, Threshold_Demo);
-createTrackbar(trackbar_morph,	window_name, &morphology_type,	max_type,	Morphology_Demo);
-
-// Call the function to initialize
-Threshold_Demo(0, 0);
-Morphology_Demo(0, 0);
-```
-
-
-
-### 4. Feature detection
-
-​			Edge has rapid change in image intensity. Intensity gradient is 2D vector. (Gradient strength, Gradient direction). Gradient direction is perpendicular to edge difrection. Actual edges are ramp-like instead of step edge. Since edge detection uses gradient method (derivative), data should be proceesed like smoothing. 
-
-#### 4.1. Preprocess
-
-* To reduce the noise effect, use smooth filter before edge detection : average filter, median filter, Gaussian filter
-
-* But smoothing blurs edges
-
-  <img src="https://user-images.githubusercontent.com/99113269/230282687-0dc15462-2c65-4640-bfb7-f4d873e6323a.png" alt="image" style="zoom: 67%;" />
-
-<img src="https://user-images.githubusercontent.com/99113269/230282907-c2b9214d-ee91-46f6-ba5c-b89e3b10119d.png" alt="image" style="zoom: 67%;" />
-
-<img src="https://user-images.githubusercontent.com/99113269/230283192-37491333-5ba2-4696-84f9-4872885ac125.png" alt="image" style="zoom:67%;" />
-
-
-
-#### 4.2. Canny edge detection
-
-* What is good edge detector?
-
-  * Low error rate : all edges should be found
-  * Well localized edge points
-
-* Canny algorithm uses 1st derivative for detection
-
-  
-
-##### 4.2.1. Factors in canny edge detection
-
-* Sigma : size of gaussian filter
-* Good values to start with are between 0.6 to 2.4
-  * Smaller filters cause less blurring, and allow detection of small, sharp lines.
-  * A larger filter increases processing time and causes more blurring.
+        self.rotZ = np.array([[np.cos(self.Gamma)    ,   -np.sin(self.Gamma) ,   0 ], 
+                              [np.sin(self.Gamma)    ,   np.cos(self.Gamma)  ,   0 ], 
+                              [    0                 ,        0              ,   1 ]])    
+        
+        
+        self.rotMat   = self.rotZ @ self.rotY @ self.rotX
+        
+        
+        self.transMat = np.array([[      0       ],
+                                  [self.realHeight],
+                                  [self.realRecede]]) 
+        
+        self.M_ext = np.hstack((self.rotMat, self.transMat))
 
 
+        self.M_int = np.array([[self.focalLen/self.sx , 0                       , self.ox ],            
+                               [0                     , self.focalLen/self.sy   , self.oy ],
+                               [0                     , 0                       , 1       ]])  
+        
+        self.projectionMat = self.M_int @ self.M_ext 
+        
+        self.candidates     = []
+        self.rubberDist     = 0
+        self.distance       = 0
+        self.yoloBuffer     = []
+        self.zeroCnt        = 0
+        self.distVal        = 0
+        self.maxDiff        = 25
+        self.isyoloReady    = False
+        self.steerCmd       = 0
+        
+        self.nObject        = 0
+        self.azimuth        = 0
+        self.objectDist     = 0
+        self.isWarn         = False
+        
+        self.markerSize     = 12
+        self.userFont       = cv.FONT_HERSHEY_COMPLEX
+        
+        self.Ux             = 0
+        self.Uy             = 0 
+        self.prevsteerCmd   = 0
+        self.startFlag      = 0
+        
+        self.portNum        = 'COM4'
+        self.velocity       = 0     # [km/h]
+        
+        
+    def polar2xy(self, dist, azi) : 
 
-##### 4.2.2. Non-maxima suppression
+        n = len(azi)
+        x = np.zeros(n)
+        y = np.zeros(n)
 
-​			Check if pixel is local maximum along gradient direction angle. Figure below shows the result of applying nonmaxima suppression.
+        for i in range(n) :
 
-<img src="https://user-images.githubusercontent.com/99113269/230284934-bec92852-e4c2-4ace-9abc-b879ef5c8bf6.png" alt="image" style="zoom:50%;" />
+            x[i] = dist[i] * cos(azi[i] * self.D2R)
+            y[i] = dist[i] * sin(azi[i] * self.D2R)
+
+        return x, y
+
+        
+
+    def recieveYolo(self, frame) :
+        
+        shm = shared_memory.SharedMemory(name = "HADA3_CAM")
+        self.yoloBuffer = np.ndarray((12,), dtype='int', buffer = shm.buf)
+        
+        self.nObject = 0
+        
+        for i in range(0, len(self.yoloBuffer), 2) :
+            
+            if(self.yoloBuffer[i] < 50) : self.yoloBuffer[i] = self.yoloBuffer[i] - 25
+            
+            if(self.yoloBuffer[i] > 590) : self.yoloBuffer[i] = self.yoloBuffer[i] + 25
+            
+            cv.circle(frame, (self.yoloBuffer[i], self.yoloBuffer[i+1]), 5, self.colorYellow, -1)    
+        
+        """
+            - YOLO 객체 인식이 먼저 켜지면 오류가 생기는데, 방지하기 위해 startFlag를 사용
+        """        
+
+        if self.yoloBuffer[0] and self.yoloBuffer[1] == 0 :
+            
+            cv.putText(frame, "NO OBJECT DETECTED", (10,310), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorGreen, 2)
+            cv.putText(frame, "EMERGENCY STOP : OFF", (10, 410), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorWhite, 2)
+            cv.putText(frame, "SAFE !", (10, 460), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorGreen, 2)
+
+        else : 
+            
+            self.isyoloReady = True
+            
+            if self.startFlag > 0 :
+                
+                self.lidarxList, self.lidaryList = [], []
+                
+                for Idx in range(0, len(self.yoloBuffer), 2) :
+                
+                    objectcenX, objectcenY = self.yoloBuffer[Idx], self.yoloBuffer[Idx+1]
+                    
+                    self.candidates = []
+
+                    if objectcenX == 0 or objectcenY == 0 :
+                        continue
+
+                    for i in range(761):
+
+                        if abs(self.projectionX[i] - objectcenX) < self.maxDiff and self.projectionY[i] > objectcenY - 30:
+
+                            self.candidates.append(i)
+                            
+                            if len(self.candidates) == 4   :  break
+
+                    
+                    if self.lidarY[i] > 0 :
+                        
+                        self.nObject += 1
+                        
+                        self.lidarxList.append(self.lidarX[i])
+                        self.lidaryList.append(self.lidarY[i])
+                        
+                        self.objectDist = round(sqrt(self.lidarX[i]**2 + self.lidarY[i]**2), 2)
+                        self.azimuth    = round(90 - atan2(self.lidarY[i], self.lidarX[i]) * self.R2D, 2)
+                
+                        cv.putText(frame, f"DIST : {self.objectDist}",(objectcenX - 50, objectcenY + 50), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorYellow, 2)
+                        # Warning flag
+                        self.isWarn = True if self.objectDist < 2.0 else False
+                      
+                        
+            if (self.isWarn) :
+                
+                cv.putText(frame, "EMERGENCY STOP : ON", (10, 410), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorRed, 2)
+                cv.putText(frame, "WARNING !", (10, 460), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorRed, 2)
+
+            
+            else :
+                
+                cv.putText(frame, "EMERGENCY STOP : OFF", (10, 410), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorWhite, 2)
+                cv.putText(frame, "SAFE !", (10, 460), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorGreen, 2)        
+
+
+            if self.azimuth < 0 :
+                cv.putText(frame, f"POSITION : [LEFT] {abs(self.azimuth)} [deg]", (10, 360), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorWhite, 2) 
+            
+            
+            elif self.azimuth > 0 :
+                cv.putText(frame, f"POSITION : [RIGHT] {abs(self.azimuth)} [deg]", (10, 360), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorWhite, 2)
+            
+            
+            cv.putText(frame, f"# of detected object : {self.nObject}",(10,310), cv.FONT_HERSHEY_COMPLEX, 0.7, self.colorYellow, 2)
+            drawnow.drawnow(self.plotLidar)
+            
+            self.startFlag += 1
+            
+
+
+    def platformControl(self) :
+        
+        # Velocity & Steer cmd
+        sendCommand = erpSerial(self.portNum)
+        sendCommand.send_ctrl_cmd(self.velocity, int(self.steerCmd))
+        
+        if self.isWarn == False :
+            
+            self.velocity = 6
+            
+        elif self.isWarn == True :
+            
+            self.velocity = 0
+            
+            
+    def plotLidar(self) :
+        
+        plt.plot(self.lidarxList, self.lidaryList, 'ro', markersize = self.markerSize)
+        plt.xlabel('x coor [m]', fontsize='large', fontweight='bold')
+        plt.ylabel('y coor [m]', fontsize='large', fontweight='bold')
+        plt.title('Relative coordinate of lidar', fontsize='x-large', fontweight='bold')
+        plt.xlim([-3, 3])
+        plt.ylim([0, 6])
+        plt.grid(True)
+        
+
+
+    def lidarCamProjection(self, frame) :                                 
+
+        self.projectionX = []
+        self.projectionY = []
+
+        for i, dis in enumerate(lidarDist):
+
+            lidarDist[i] = lidarDist[i] / 500
+
+        self.lidarX , self.lidarY = self.polar2xy(lidarDist,azim)                      
+
+        for i in range(len(azim)):
+
+            pixelXY  = 0
+            pointcloudXY = 0
+
+            lx = self.lidarX[i]
+            ly = self.lidarY[i]
+            lz = 0
+            Cz = ly + self.realRecede            
+
+            pointcloudXY = np.array([[lx],[ly],[lz],[1]])
+            pixelXY = 1/Cz * self.projectionMat @ pointcloudXY
+
+            pixelX = int(pixelXY[0])
+            pixelY = int(pixelXY[1])
+
+            self.projectionX.append(pixelX)
+            self.projectionY.append(pixelY)
+
+            cv.circle(frame, (round(pixelX) ,round(pixelY)), 3, self.colorWhite)
+            
+        # cv.imshow("test",frame)
 
 
 
-##### 4.2.3. Thresholding
 
-* Too high thresholding : actual validated edge points will be eliminated.
-* Too low thresholding : false edges will be detected
-
-
-
-#### 4.3. Line detection
-
-​			Consider parameter space of mc-plane. 
-$$
-y = mx + c --> c = -xm + y
-$$
-
-* A line in the image corresponds to a point in Hough space. 
-
-* A point in the image corresponds to a line in Hough space.
-
-Two different points on a same line in xy plane ( y = mx + c ) intersects in same point in hough space. 
-
-<img src="https://user-images.githubusercontent.com/99113269/230286871-7f7b9b28-5e0c-4233-8bcb-16983e806108.png" alt="image" style="zoom:50%;" />
-
-
-
-
-
-### Tips about image processing
-
-#### Tip 1 : Showing multiple images in one window
-
-```c++
-#include <opencv2/opencv.hpp>
-using namespace cv;
-
-void main(){
+if __name__ == "__main__" :
     
-    Mat image1 = imread("image1.jpg");
-    Mat image2 = imread("image2.jpg");
-    Mat image3 = imread("image3.jpg");
-    Mat image4 = imread("image4.jpg");
+    fourcc   = cv.VideoWriter_fourcc(*'XVID')
+    outVideo = cv.VideoWriter('./output/outputVideo2.avi', fourcc, 20.0, (640, 480))        
+    
+    sim     = Lidar_SharedMem()
+    project = PROJECTION()
+    
+    sim.Lidar_SMopen()
+    sim.Yolo_SMopen()
+    
+    time_start = time.time()
 
-    std::vector<Mat> images;
-    images.push_back(image1);
-    images.push_back(image2);
-    images.push_back(image3);
-    images.push_back(image4);
+    blackorgImg = np.zeros((480, 640, 3), dtype = np.uint8)
 
-    Mat result;
-    hconcat(images, result);
+    while (time_stime < time_final):
 
-    imshow("Result", result);
-    waitKey(0);
+        blackImg = np.copy(blackorgImg)
+        
+        # Recieve data
+        sim.receiveDist()
+        
+        project.recieveYolo(blackImg)
+            
+        project.lidarCamProjection(blackImg)
 
-}
+        # project.platformControl()
+        
+        outVideo.write(blackImg)
+        
+        cv.imshow("test",blackImg)
+        
+        if cv.waitKey(27) & 0xFF == ord('q'):
+            
+            outVideo.release()
+            break
+          
+        while(1):
+            
+            time_curr = time.time()
+            time_del = time_curr - time_start - time_stime
+            
+            if (time_del > time_ts) :
+                
+                time_cnt += 1
+                time_stime = time_cnt*time_ts
+                
+                break
+            
 
+    sim.sharedmemory_close()
 ```
 
 
-
-#### Tip 2 : Trackbar (with example)
-
-```c++
-// Set initial value and the max values of variables 
-int threshold_value = 0;
-int threshold_type	= 0;
-int Cval = 0;
-int morphology_type = 0;
-
-int const max_value = 255;
-int const max_type	= 6;
-int const max_C = 10;
-int const max_binary_value = 255;
-
-// Trackbar strings
-String window_name		= "Threshold & Morphology Demo";
-String trackbar_type    = "Thresh Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Invertd \n 5: Otsu method \n 6: Adaptive threshold";
-String Cvalue = "C in adaptive filter";
-String trackbar_value	= "Thresh Value";
-String trackbar_morph	= "Morph Type 0: None \n 1: erode \n 2: dilate \n 3:  \n 4: open";
-
-// main statement ------------------------------------------------------------------------------------------------------------
-namedWindow(window_name, WINDOW_NORMAL);
-
-// Create trackbar to choose type of threshold
-createTrackbar(trackbar_type,	window_name, &threshold_type,	max_type,	Threshold_Demo);
-createTrackbar(trackbar_value,	window_name, &threshold_value,	max_value,	Threshold_Demo);
-createTrackbar(Cvalue, window_name, &Cval, max_C, Threshold_Demo);
-createTrackbar(trackbar_morph,	window_name, &morphology_type,	max_type,	Morphology_Demo);
-
-// Function headers
-void Threshold_Demo	(int, void*);
-void Morphology_Demo(int, void*);
-
-// Function definition
-void Threshold_Demo(int, void*){
-
-	//	0: Binary	1: Threshold Truncated	  2: Threshold to Zero	3: Threshold to Zero Inverted
-	//	4: To zero inverted		5: Otsu method		6: adaptive threshold
-	
-	if (threshold_type == 5)  threshold_type = 8;
-	threshold(src_gray, dst, threshold_value, max_binary_value, threshold_type);
-
-	if (threshold_type == 6)  adaptiveThreshold(src_gray, dst, max_binary_value, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 3, Cval);
-	imshow(window_name, dst);
-}
-
-// default form of callback function for trackbar
-void Morphology_Demo(int, void*){  
-
-	// 0: None	1: Erode	2: Dilate	3: Close	4: Open 
-	
-	switch (morphology_type) {
-
-		case 0: dst.copyTo(dst_morph);									break;
-		case 1: erode(dst, dst_morph, element);							break;
-		case 2: dilate(dst, dst_morph, element);						break;
-		case 3: morphologyEx(dst, dst_morph, CV_MOP_OPEN, element);		break;
-		case 4: morphologyEx(dst, dst_morph, CV_MOP_CLOSE, element);	break;
-	}
-
-	imshow(window_name, dst_morph);
-}
-
-```
-
-
-
-## .
-
-## .
-
-## .
-
-
-
-
-
-## Deep Learning
-
-### 1. Activation function
-
-입력을 받아서 활성화 또는 비활성화를 결정하는 데에 사용되는 함수. 
-
-
-
-#### 1.1. Sigmoid function
-
-
-
-* 음수 값을 0에 가깝게 표현하기 때문에, 입력 값이 최종 레이어에서 미치는 영향이 적어진다 : Vanishing Gradient Problem
-* Back-propagation을 계산하는 과정에서는, 활성화 함수의 미분값을 곱하는 과정이 포함되는데, 이 함수의 경우 은닉층의 깊이가 깊다면 오차율을 계산하기 어렵다는 문제가 발생한다. 
-* 또한, 함수의 중심이 0이 아니기 때문에, 학습이 느려질 수 있다.
-
-
-
-#### 1.2. Tanh function
-
-![image](https://user-images.githubusercontent.com/99113269/235345910-6f671566-f4da-4ad9-a1ed-5da1e8c634e9.png)
-
-* Hyperbolic tangent function
-
-* 입력값이 작아질수록 출력값은 0에 가까워지고, 입력값이 커질수록 출력값은 1에 가까워진다.
-
-* 입력값이 작아질수록/커질수록 기울기(gradient)는 0에 가까워진다.
-
-* 이 역시, vanishing gradient problem이 발생
-
-  
-
-#### 1.3. ReLU function (Rectified Linear Unit function)
-
-![image](https://user-images.githubusercontent.com/99113269/235345923-26e7c87d-b8d2-4cba-b165-b41fd8b05436.png)
-
-* 앞선 두 activate function이 가지는 gradient vanishing 문제를 해결하기 위한 함수
-* Most commonly used in CNN
-
-
-
-### 2. Deep Neural network
-
-#### 2.1. Notation
-
-![image](https://user-images.githubusercontent.com/99113269/235345942-04f08824-e193-4b35-866a-2a8283f399d7.png)
-
-![image](https://user-images.githubusercontent.com/99113269/235345957-b92c6bb7-a2da-4c1b-a36b-8801221cd41c.png)
-
-
-
-#### 2.2. Back propagation method
-
-![image](https://user-images.githubusercontent.com/99113269/235345986-28de18b6-d3be-473c-9b42-2c17ce570749.png)
-
-![image](https://user-images.githubusercontent.com/99113269/235345994-1463959e-c8a4-47be-9c0b-14231d4cb89d.png)
-
-![image](https://user-images.githubusercontent.com/99113269/235346004-e07cadb0-1701-4afa-ad13-c90de109b6d9.png)
-
-
-
-### 3. Convolution neural network
-
-<img src="https://user-images.githubusercontent.com/99113269/236402005-fc04a937-bb43-49ff-bc30-92362a64f168.png" alt="image" style="zoom:50%;" />
-
-<img src="https://user-images.githubusercontent.com/99113269/236402250-458cdb2c-2b5d-463b-bb01-0a6f121a63fe.png" alt="image" style="zoom:50%;" />
-
-
-
-### 4. Inception1 (GOOGLENET)
-
-<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/d5fb473c-6a7e-4004-be76-6484652437c9" alt="image" style="zoom: 50%;" />
-
-<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/781ddba2-f3c2-414d-957d-97dccafb7283" alt="image" style="zoom:50%;" />
-
-### 5. RESNET (Residual neural network)
-
-* Previous CNN structures (e.g. ALEXNET, VGGNET) has vanishing gradient  problem
-* With structure of residual block & shourtcut connection algorithm, the problem was solved.
-* Deeper neural network with 1001 layers does not have any vanishing gradient problem with this algorithm since gradient cannot be under '1' with definition of chain rule.
-
-<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/413c54fa-536a-4e46-8e54-df4228a169b8" alt="image" style="zoom:50%;" />
 
