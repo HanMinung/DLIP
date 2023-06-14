@@ -90,61 +90,38 @@
 #### 2.3.1. Nvidia Graphic Driver Installation
 
 1. Search for **Run** in the **Start** menu search bar
+1. In the **Open** box, type "dxdiag".
+1. CPU and windows specs
 
-<img src="https://user-images.githubusercontent.com/91474647/214517442-f494bc9e-52f5-43c7-8992-9e76d64bb575.png" alt="https://user-images.githubusercontent.com/91474647/214517442-f494bc9e-52f5-43c7-8992-9e76d64bb575.png" style="zoom: 50%;" />
-
-
-
-2. In the **Open** box, type "dxdiag".
-
-<img src="https://user-images.githubusercontent.com/91474647/214517684-d9ccef59-a72d-4006-99d0-7b1917ba50a5.png" alt="https://user-images.githubusercontent.com/91474647/214517684-d9ccef59-a72d-4006-99d0-7b1917ba50a5.png" style="zoom: 67%;" />
-
-
-
-3. CPU and windows specs
-
-<img src="https://user-images.githubusercontent.com/91474647/214517979-2044703e-bb8d-43f3-8aa5-d81bb4544c79.png" alt="https://user-images.githubusercontent.com/91474647/214517979-2044703e-bb8d-43f3-8aa5-d81bb4544c79.png" style="zoom: 50%;" />
-
-
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/c517b6b0-70af-4b6d-a257-8db056f97315" alt="image" style="zoom: 67%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/4d9047af-b085-4443-bd1a-aef0c9e5d7b2" alt="image" style="zoom: 80%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/6a4772f5-4322-4f4d-a5f9-dfc2a1096c57" alt="image" style="zoom:67%;" />
 
 4. Check user's GPU specs
-
-<img src="https://user-images.githubusercontent.com/91474647/214518261-fd2e89be-491d-4325-8f3b-d90e2844da3d.png" alt="https://user-images.githubusercontent.com/91474647/214518261-fd2e89be-491d-4325-8f3b-d90e2844da3d.png" style="zoom: 67%;" />
-
-
-
 5. Go to the link below and proceed with the installation. Select the specifications of the computer checked above
 
 * link : [NVIDIA graphic driver installation](https://www.nvidia.co.kr/Download/index.aspx?lang=kr)
 
-<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/2b730c8f-3570-4ed2-b2b6-361eeaa3700e" alt="image" style="zoom:67%;" />
+6. Check the installed graphics driver version. The cuda version on the right is the recommended cuda version, not installed version.
 
+7. ```bash
+   nvidia -smi (in cmd terminal)
+   ```
 
+   <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/4695e94c-8be1-489b-a5b7-c259dbcf6b2c" alt="image" style="zoom:67%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/a8b93a31-1461-42d8-b939-29b2e0c87966" alt="image" style="zoom:67%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/9df6d293-810e-4f5f-ba72-ef370be83ac8" alt="image" style="zoom:67%;" />
 
-Check the installed graphics driver version. The cuda version on the right is the recommended cuda version, so you don't have to worry about it.
-
-```bash
-nvidia-smi
-```
-
-​	                                                                        <img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/c53c0f7e-f0d0-44d0-bb45-7221feda3e2b" alt="image" style="zoom: 80%;" />
-
-
+​        
 
 #### 2.3.2. Cuda 11.8 installation
 
 - download link : [click here](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local)
-- Download process
-
-<img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/bb883226-0e25-4e91-835b-b44e3bc5dd1b" alt="image" style="zoom: 80%;" />
+- Download process and command if downloaded
 
 ```bash
-nvcc -V
-(or)
-nvcc --version
+nvcc -V   or  nvcc --version  (in cmd terminal)
 ```
 
-![image](https://github.com/HanMinung/EmbeddedController/assets/99113269/fc5edede-c7c3-46e8-bc18-137d1fbb0737)
+​                                           <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/1081e94b-23e7-44d1-bdb8-ca64610c8c75" alt="image" style="zoom:67%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/f8fa1885-51cb-4190-8ad0-7c37fedbee63" alt="image" style="zoom:67%;" />
+
+
 
 
 
@@ -156,15 +133,13 @@ nvcc --version
 
 - After copying, you need to set system environment variables to recognize cuDNN.
 
-<img src="https://user-images.githubusercontent.com/91474647/214526915-0de47839-33a5-41c9-a0d8-37388e97d0f8.png" alt="https://user-images.githubusercontent.com/91474647/214526915-0de47839-33a5-41c9-a0d8-37388e97d0f8.png" style="zoom: 45%;" />
-
 - go into environment variables
-
-<img src="https://user-images.githubusercontent.com/91474647/214527154-56916223-80e7-4eab-9215-77f3bd1b7a5e.png" alt="https://user-images.githubusercontent.com/91474647/214527154-56916223-80e7-4eab-9215-77f3bd1b7a5e.png" style="zoom:50%;" />
 
 - Select the bottom path in Environment Variables and enter Edit
 
-  <img src="https://github.com/HanMinung/DLIP/assets/99113269/8556200f-f85b-44c0-97d1-26e6d48bb3af" alt="image" style="zoom: 50%;" />
+​                                                            <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/b9228b8b-38c7-44c4-9c50-c4465c880a94" alt="image" style="zoom:67%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/e98a3056-348e-456d-8250-cd9418f9f66a" alt="image" style="zoom:67%;" /><img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/3db20ad1-d16e-42b3-ab2e-8fddde8be001" alt="image" style="zoom:67%;" />
+
+
 
 - Click New and enter the following paths (if your cuda version is different, you can change it to suit your environment)
 
@@ -203,7 +178,7 @@ To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by empl
   - [link2 for reference](https://darkpgmr.tistory.com/184)
   - [link3 for reference](https://hanryang1125.tistory.com/10)
 
-<img src="https://github.com/HanMinung/DLIP/assets/99113269/ddbc045a-273f-4aab-8a60-cba60d8a1ce6" alt="image" style="zoom: 50%;" />
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/e6dd5482-1018-4ba6-9057-8b924534db6b" alt="image" style="zoom:67%;" />
 
 
 
