@@ -1,6 +1,6 @@
 # DLIP : Final Project
 
-* subject : Implementation of emergency braking system for automous vehicles using deep learning object detection and sensor calibration
+* subject : Implementation of emergency braking system for autonomous vehicles using deep learning object detection and sensor calibration
 * name  : Min-Woong Han, Seung-eun Hwang
 * Final project 
 * Spring semester, 2023
@@ -13,11 +13,13 @@
 
 ## **1. Introduction**
 
-​		   In autonomous driving at a stage where human judgment and intervention are completely eliminated, the vehicle operates solely based on real-time perception information from sensors. Therefore, accurate sensor data is crucial for safe autonomous driving, enabling efficient and rapid decision-making and response. As a background for this final project, a case from Uber's autonomous driving test in 2018, where a pedestrian crossing illegally was involved in a fatal accident with the test vehicle, has been selected. Dealing with jaywalking pedestrians requires precise perception, as well as calculating the distance and direction of the objects, followed by the vehicle's ability to make its own judgment and apply emergency braking if necessary. Recognizing the importance of testing the vehicle's capability in handling such scenarios, the experiment was conducted. Throughout whole process, camera sensors were used for object perception, and 2D LiDAR sensors were utilized for distance measurement. Initially, YOLO V8 was employed for object detection due to its advantage of achieving high accuracy with a smaller dataset compared to YOLO V5, provided accurate labeling is performed. Subsequently, a sensor calibration issue arises when fusing the information from the 2D LiDAR and the camera, as the coordinate axes of each sensor need to be unified. To address sensor calibration, intrinsic matrices representing the internal parameters of the camera and extrinsic matrices compensating for the sensor's position and orientation differences need to be defined, and detailed processes for calculating them are provided. Once these processes are successfully executed, the world coordinates of the LiDAR are projected onto the camera's pixel coordinates. After testing and verification, the planned experiments can be conducted. The goals hoped to achieve through this project are as follows. First, to make the error of the distance extracted through calibration come within 1%, that is, to make the sensor calibration perfectly. And, to conduct a total of 10 experiments and to make all 10 times appropriately operate emergency brakes, that is, to build a 100% emergency response system. From the next part, text introduces the requirements, object recognition process, sensor calibration, and strategies for implementing an emergency braking system. 
+​		    In autonomous driving at a stage where human judgment and intervention are completely eliminated, the vehicle operates solely based on real-time perception information from sensors. Therefore, accurate sensor data is crucial for safe autonomous driving, enabling efficient and rapid decision-making and response. As a background for this final project, a case from Uber's autonomous driving test in 2018, where a pedestrian crossing illegally was involved in a fatal accident with the test vehicle, has been selected. Dealing with jaywalking pedestrians requires precise perception, as well as calculating the distance and direction of the objects, followed by the vehicle's ability to make its own judgment and apply emergency braking if necessary. Recognizing the importance of testing the vehicle's capability in handling such scenarios, the experiment was conducted. Throughout whole process, camera sensors were used for object perception, and 2D LiDAR sensors were utilized for distance measurement. Initially, YOLO V8 was employed for object detection due to its advantage of achieving high accuracy with a smaller dataset compared to YOLO V5, provided accurate labeling is performed. Subsequently, a sensor calibration issue arises when fusing the information from the 2D LiDAR and the camera, as the coordinate axes of each sensor need to be unified. To address sensor calibration, intrinsic matrices representing the internal parameters of the camera and extrinsic matrices compensating for the sensor's position and orientation differences need to be defined, and detailed processes for calculating them are provided. Once these processes are successfully executed, the world coordinates of the LiDAR are projected onto the camera's pixel coordinates. After testing and verification, the planned experiments can be conducted. The goals hoped to achieve through this project are as follows. First, to make the error of the distance extracted through calibration come within 1%, that is, to make the sensor calibration perfectly. And, to conduct a total of 10 experiments and to make all 10 times appropriately operate emergency brakes, that is, to build a 100% emergency response system. From the next part, text introduces the requirements, object recognition process, sensor calibration, and strategies for implementing an emergency braking system. 
 
 <img src="https://github.com/HanMinung/EmbeddedController/assets/99113269/66851cb1-076c-4605-8980-bbfa1066f54e" alt="image" style="zoom: 60%;" />
 
 <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/573a411f-7fe1-4077-a933-9c72eec1f0d7" alt="image" style="zoom: 80%;" />
+
+
 
 
 
@@ -228,7 +230,7 @@ To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by empl
   
   3. Camera process for deep learning : 40 ~ 70 FPS
   
-     <img src="https://github.com/HanMinung/DLIP/assets/99113269/54ed67af-ebbd-4172-9e40-40a82a989343" alt="DLIPfinal drawio" style="zoom:80%;" />
+     <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/d0767f57-7d24-40dd-aff0-a61154541112" alt="Flow chart" style="zoom: 80%;" />
   
      
 
@@ -240,7 +242,7 @@ To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by empl
 
 * The world coordinate systems of lidar and the camera are defined differently. For instance, as evident from the above Figure, the world coordinate system of the camera defines depth information along the z-axis, whereas lidar sensor defines depth information along the x-axis. Therefore, when defining the rotation matrix, it is necessary to first unify the coordinate axes that are defined differently. 
 
-<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/48582bec-b3f3-4e8a-ac2a-ecc2d8e53b28" alt="image" style="zoom:40%;" /><img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230528193306827.png" alt="image-20230528193306827" style="zoom: 70%;" />
+​                                       <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/48582bec-b3f3-4e8a-ac2a-ecc2d8e53b28" alt="image" style="zoom:40%;" /><img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230528193306827.png" alt="image-20230528193306827" style="zoom: 70%;" />
 
 * The matrix R is a 3x3 matrix that accounts for the difference in orientation between the two sensors and provides the necessary calibration. The matrix T, on the other hand, is a 3x1 matrix that considers the physical displacement between the two sensors and provides the corresponding calibration. As for the intrinsic parameter matrix mentioned earlier, it represents the distortion correction matrix specific to the camera itself. Ultimately, the most crucial part of the calibration process is accurately determining the Extrinsic matrix (R|t), which takes into account the positional and rotational differences between the two sensors. In the case of the camera sensor, it is not facing directly forward but rather angled approximately 20 degrees below the front-facing position. Therefore, the alpha value, required to compute the rotation matrix, is set to the converted radian value of 110 degrees. As there is no deviation in the left-right orientation between the two sensors, the Beta and Gamma values can be set to 0 for the calibration process. Python code that calculates extrinsic matrix was made like below.
 
@@ -299,11 +301,47 @@ Through this entire process, the actual coordinates of the lidar are transformed
 
 ### 3.7. Model training for object detection
 
-​		The deep learning model used in our operations was the eighth version of You Only Look Once (YOLO v8). This model has been widely adopted for object detection tasks due to its efficiency and accuracy. The data used for training the YOLO model was obtained from direct photography and then labeled accordingly. Approximately 400 instances were used to create the training set. We employed Roboflow, an efficient tool for image annotation, to annotate the dataset in segment mode.
+#### 3.7.1 YOLO v5
 
-<img src="https://github.com/HanMinung/DLIP/assets/99113269/646b4d71-f50a-4db5-a0a6-f6c84871277c" alt="image" style="zoom: 80%;" />
+- **Methodology**
 
-Transfer learning was utilized during the model training process. We used a pretrained model, [yolov8l-seg.pt](http://yolov8l-seg.pt/), and adapted it to our custom dataset. This technique allows for the leveraging of pre-existing neural networks, saving time and computational resources while also often improving the model's performance on the specific task.
+YOLO v5 utilizes 3,500 images for model training. Annotations are performed using bounding boxes which facilitate the labeling process. However, the model tends to learn the background along with the target object during deep learning. This causes a significant drop in detection accuracy if there is a difference between the training and operational environments. For rectangular objects such as signs and traffic lights, the recognition rate remains high due to their shape similarity with the bounding box. In contrast, objects like vehicles, pedestrians, and rubber cones (as used in this experiment) are affected by the background occupying approximately two-thirds of the bounding box.
+
+- **Drawbacks**
+
+Training the model to recognize an object in diverse environments demands a large dataset. The time invested in labeling and learning increases considerably.
+
+
+
+#### 3.7.2 YOLO v8
+
+- **Motivation for Transition**
+
+There are three primary reasons for transitioning to YOLO v8. First, YOLO v8 exhibits commendable performance even with a smaller dataset. Second, it offers codes for converting to the ONNX structure, which is advantageous for transitioning to engine files. Third, it supports annotation types other than bounding boxes.
+
+- **Methodology and Performance**
+
+YOLO v8 demonstrates satisfactory performance even with smaller datasets. For instance, in training the model to recognize rubber cones, YOLO v5 required approximately 3,500 images (~1,700 images per object). YOLO v8, on the other hand, achieved an average accuracy of 0.85 to 0.9 with only about 90 images. For stabilized accuracy, the dataset was increased to approximately 400 images, resulting in an accuracy range of 0.94 to 0.96.
+
+- **Computational Efficiency**
+
+By utilizing engine weights that can be computed with TensorRT, YOLO v8 significantly reduces the image processing time. In autonomous vehicles, real-time object recognition using cameras is critical. While YOLO v5, using weights in the form of yolov5l.pt, shows a loop time of 30 to 50 ms, YOLO v8 achieves object recognition times as low as 10 to 20 ms (up to 80 fps) and 15 to 30 ms (at least 30 fps) when computed with yolov8l-seg.engine weight and TensorRT. This enhancement is crucial for safe vehicle operation as it minimizes the overall system time in real-time control.
+
+- **Advanced Labeling**
+
+Lastly, YOLO v8 facilitates learning through segmentation. Unlike bounding boxes, segmentation allows learning of the object exclusively, without the background. This contributes to increased accuracy and stable object recognition.
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/fabf5a48-15d3-4108-9f73-14897fb6fc53" alt="image" style="zoom:67%;" />
+
+
+
+#### 3.7.3 Performance Comparison
+
+The performance metrics indicate that YOLO v5 exhibits an accuracy between 0.78 to 0.82 with a fluctuating size of the bounding box. In contrast, YOLO v8 consistently outputs a bounding box of constant size and achieves an accuracy ranging from 0.94 to 0.96.
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/010f574f-0646-4a07-85f3-b327f8728040" alt="image" style="zoom:67%;" />
+
+Transfer learning was utilized during the model training process. We used a pretrained model, yolov8l-seg.pt, and adapted it to our custom dataset. This technique allows for the leveraging of pre-existing neural networks, saving time and computational resources while also often improving the model's performance on the specific task.
 
 ```python
 from ultralytics import YOLO
@@ -316,6 +354,14 @@ model.train(task="segment", data="robowflow를 통해 다운받은 yaml파일 �
 						save=True, 
 						epochs = 120)
 ```
+
+
+
+#### 3.7.4. Performance evaluation
+
+All learning process has been completed through transfer learning, and since one of the most important elements of this project is accurate object detection, performance evaluation is essential. Using the learned model, the environment and the location of the rubber cone were different 100 times to evaluate the recognition rate of the rubber cone. The evaluation results for this are as follows. It has been confirmed that 98 out of 100 times of recognition is accurate, and 2 times of recognition is incorrect or disconnected from time to time, and that the problem occurs mainly in dark environments.		
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/3e4d70e0-0ada-49a4-b590-36dbc2333556" alt="image" style="zoom:67%;" />
 
 
 
@@ -405,7 +451,7 @@ Demo video link : [click here](https://youtu.be/Zah9VBC8uuM)
 
 ## **5. Discussion and analysis**
 
-​			Through deep learning, object detection was achieved, and since it is not possible to directly measure the distance to the objects using a single camera, an additional sensor, a 2D LiDAR, was used in the experiment. Due to the different coordinate systems defined for each sensor, sensor calibration was conducted. The calibration enabled distance extraction, and after verification, the ultimate goal of implementing an emergency braking system to handle sudden obstacles was successfully achieved. When conducting a total of 10 experiments, real-time distance and azimuth angle measurements were successfully carried out for the recognized objects, and emergency braking was performed as intended in each experiment.
+​			It's necessary to proceed with the evaluation and analysis of the implementation performance and experiments. The calibration of the two sensors was conducted to complement each other's shortcomings. While the camera sensor is capable of object recognition, it cannot calculate the distance to the recognized object. On the other hand, while the 2D LiDAR sensor is specialized in distance measurement, it doesn't have a way to identify what the object is. Therefore, the fusion of the two sensors was carried out, and calibration was an essential process for this. Through calibration, the coordinate axes were matched, and the distance to the object was calculated using the available information from both sensors, all of which converged within the targeted 1% error range. Accordingly, the verification for calibration was perfectly conducted, and we moved onto the implementation stage of the emergency braking system. We first established the criteria necessary for system construction, proceeded with the construction, and conducted a total of 10 experiments. We achieved our target of 10 out of 10 successes. In other words, it's possible to evaluate the successful construction of a stable emergency braking system using sensor calibration and deep learning, which was the ultimate goal of the project.
 
 Since a 2D LiDAR was used, there could be a challenge when dealing with actual cyclists or pedestrian instead of rubber cones, as the points projected onto the object might or might not actually be on the person. However, this can be addressed through appropriate post-processing when 2D lidar is used. If the post-processing is unstable, it may be possible to use a 3D LiDAR to perform sensor calibration using the same process and process the data based on accurate point cloud data. The choice between these methods requires careful consideration. Using a 3D LiDAR can provide the advantage of accurate post-processing based on 3D point clouds, but it also brings the challenge of handling a large amount of point cloud data, which may slow down the sampling frequency of the main system that can cause delay of transferred commands to the platform. However, considering the trade-offs and advantages, choosing the appropriate sensor based on individual strengths and weaknesses can lead to a more accurate system implementation.
 
@@ -417,13 +463,13 @@ Since a 2D LiDAR was used, there could be a challenge when dealing with actual c
 * Main code (sensor calibration & platform control)
 
 ```python
-# -------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------
 #
 #   @   DLIP final project code  :   Implementation of emergency braking system for automous vehicles
 #   @   Update     				 :   2023.6.11
 #   @   Purpose    			     :   Lidar Cam calibration
 #
-# -------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------
 
 from module import *
 from serial_node import *
@@ -822,7 +868,7 @@ if __name__ == "__main__" :
             
         project.lidarCamProjection(blackImg)
 
-        # project.platformControl()
+        project.platformControl()
         
         outVideo.write(blackImg)
         
