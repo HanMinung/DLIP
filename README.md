@@ -224,14 +224,15 @@ To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by empl
 ### 3.2. System flowchart
 
 * Three processes run simultaneously. And each code communicates with other process with `shared memeory` method.
+
   1. Lidar interface process for data receiving : 50 Hz sampling frequency real time structure
-  
+
   2. Main process : 50 Hz sampling frequency real time structure
-  
+
   3. Camera process for deep learning : 40 ~ 70 FPS
-  
+
      <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/d0767f57-7d24-40dd-aff0-a61154541112" alt="Flow chart" style="zoom: 80%;" />
-  
+
      
 
 ### 3.3. Sensor calibration
@@ -242,7 +243,9 @@ To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by empl
 
 * The world coordinate systems of lidar and the camera are defined differently. For instance, as evident from the above Figure, the world coordinate system of the camera defines depth information along the z-axis, whereas lidar sensor defines depth information along the x-axis. Therefore, when defining the rotation matrix, it is necessary to first unify the coordinate axes that are defined differently. 
 
-​                                       <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/48582bec-b3f3-4e8a-ac2a-ecc2d8e53b28" alt="image" style="zoom:40%;" /><img src="C:\Users\hanmu\AppData\Roaming\Typora\typora-user-images\image-20230528193306827.png" alt="image-20230528193306827" style="zoom: 70%;" />
+​                                       <img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/48582bec-b3f3-4e8a-ac2a-ecc2d8e53b28" alt="image" style="zoom:40%;" />
+
+<img src="https://github.com/HwangSeungEun/hada_camera/assets/91474647/61e07d2f-00f1-4a43-8178-56a1ee29393c" alt="image" style="zoom: 50%;" />
 
 * The matrix R is a 3x3 matrix that accounts for the difference in orientation between the two sensors and provides the necessary calibration. The matrix T, on the other hand, is a 3x1 matrix that considers the physical displacement between the two sensors and provides the corresponding calibration. As for the intrinsic parameter matrix mentioned earlier, it represents the distortion correction matrix specific to the camera itself. Ultimately, the most crucial part of the calibration process is accurately determining the Extrinsic matrix (R|t), which takes into account the positional and rotational differences between the two sensors. In the case of the camera sensor, it is not facing directly forward but rather angled approximately 20 degrees below the front-facing position. Therefore, the alpha value, required to compute the rotation matrix, is set to the converted radian value of 110 degrees. As there is no deviation in the left-right orientation between the two sensors, the Beta and Gamma values can be set to 0 for the calibration process. Python code that calculates extrinsic matrix was made like below.
 
@@ -276,7 +279,7 @@ To enhance the speed of OpenCV operations, we built OpenCV for GPU usage by empl
                          [0                     , self.focalLen/self.sy   , self.oy ],
                          [0                     , 0                       , 1       ]])  
   ```
-  
+
   
 
 * Translation matrix that calibrates the physical locationcal difference of two sensors can be calculated as follows :
@@ -301,27 +304,71 @@ Through this entire process, the actual coordinates of the lidar are transformed
 
 ### 3.7. Model training for object detection
 
-#### 3.7.1 YOLO v5
+#### 3.7.1 Custom dataset
 
-- **Methodology**
+Train data was annotated by uploading the video taken directly to the roboflow.
+
+If you don't have a roboflow ID, go to [this link](https://roboflow.com/) to sign up and create a new project. Determine the type of object recognition in the project. If you select an instance segment, you can produce an annotation made of polyline. Simply write down which object it recognizes, name the project, and create a project.
+
+
+
+![image](https://github.com/HwangSeungEun/hada_camera/assets/91474647/e9e0a127-dd78-4be8-9cef-31d671e9d067)
+
+
+
+After selecting a file, select an image to be used for labeling work.
+
+In the video to be used, it is recommended not to use images that are ambiguous to label because there are as many objects as possible or too many objects.
+
+- a good source(left), a bad source (right)
+
+![image](https://github.com/HwangSeungEun/hada_camera/assets/91474647/e5172a0a-b3df-4be8-95b9-bf577d950bb3)
+
+
+
+For labeling, segment annotation is performed using smart polygon
+
+<img src="https://github.com/HwangSeungEun/hada_camera/assets/91474647/c52523e1-88a3-4bf4-9aa6-2a58de0131b9" alt="image" style="zoom: 50%;" />
+
+
+
+If the labeling work is completed as follows, proceed with data augmentation. By bending the same image, it looks like a picture of various environments, so you can create a dataset that becomes stronger against disturbance.
+
+
+
+<img src="https://github.com/HwangSeungEun/hada_camera/assets/91474647/dd90f99c-52e2-4e2c-b524-e74faceef141" alt="image" style="zoom:67%;" />
+
+When data augmentation is completed, export data set is carried out. Dataset proceeds in the form of downloading from jupyter, so you can choose as follows. And you can paste the code shown below.
+
+![image](https://github.com/HwangSeungEun/hada_camera/assets/91474647/2d4fbaac-7e3d-48c2-b275-9d7c5e0e3af4)
+
+
+
+It is convenient to use a Jupiter laptop for learning. The code is placed in the source file.
+
+When object recognition is performed, **yolov8_rubber.py** can be executed. I couldn't upload the lidar interface code, so I posted an example of a code to communicate with lidar. Running **sm_lidar.py** crosses the coordinates of the focus of object recognition through yolo.
+
+
+
+#### 3.7.2 Why YOLO v8?
+
+- **YOLO v5 Methodology**
 
 YOLO v5 utilizes 3,500 images for model training. Annotations are performed using bounding boxes which facilitate the labeling process. However, the model tends to learn the background along with the target object during deep learning. This causes a significant drop in detection accuracy if there is a difference between the training and operational environments. For rectangular objects such as signs and traffic lights, the recognition rate remains high due to their shape similarity with the bounding box. In contrast, objects like vehicles, pedestrians, and rubber cones (as used in this experiment) are affected by the background occupying approximately two-thirds of the bounding box.
 
-- **Drawbacks**
+- **YOLO v5 Drawbacks**
 
 Training the model to recognize an object in diverse environments demands a large dataset. The time invested in labeling and learning increases considerably.
 
-
-
-#### 3.7.2 YOLO v8
-
-- **Motivation for Transition**
+- **YOLO v8 Motivation for Transition**
 
 There are three primary reasons for transitioning to YOLO v8. First, YOLO v8 exhibits commendable performance even with a smaller dataset. Second, it offers codes for converting to the ONNX structure, which is advantageous for transitioning to engine files. Third, it supports annotation types other than bounding boxes.
 
 - **Methodology and Performance**
 
 YOLO v8 demonstrates satisfactory performance even with smaller datasets. For instance, in training the model to recognize rubber cones, YOLO v5 required approximately 3,500 images (~1,700 images per object). YOLO v8, on the other hand, achieved an average accuracy of 0.85 to 0.9 with only about 90 images. For stabilized accuracy, the dataset was increased to approximately 400 images, resulting in an accuracy range of 0.94 to 0.96.
+
+<img src="https://github.com/HwangSeungEun/hada_camera/assets/91474647/eb2dbf54-1255-468d-980c-89d9f55aa7c0" alt="image" style="zoom: 50%;" />
 
 - **Computational Efficiency**
 
@@ -331,7 +378,7 @@ By utilizing engine weights that can be computed with TensorRT, YOLO v8 signific
 
 Lastly, YOLO v8 facilitates learning through segmentation. Unlike bounding boxes, segmentation allows learning of the object exclusively, without the background. This contributes to increased accuracy and stable object recognition.
 
-<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/fabf5a48-15d3-4108-9f73-14897fb6fc53" alt="image" style="zoom:67%;" />
+<img src="https://github.com/HwangSeungEun/hada_camera/assets/91474647/c7654840-8b10-4405-a7c9-b70f8af95586" alt="image" style="zoom:150%;" />
 
 
 
@@ -339,21 +386,13 @@ Lastly, YOLO v8 facilitates learning through segmentation. Unlike bounding boxes
 
 The performance metrics indicate that YOLO v5 exhibits an accuracy between 0.78 to 0.82 with a fluctuating size of the bounding box. In contrast, YOLO v8 consistently outputs a bounding box of constant size and achieves an accuracy ranging from 0.94 to 0.96.
 
-<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/010f574f-0646-4a07-85f3-b327f8728040" alt="image" style="zoom:67%;" />
+[video link](https://youtu.be/zHC-5-EBTKA)
+
+<img src="https://github.com/HwangSeungEun/hada_camera/assets/91474647/433d7072-7ac0-4b4f-b59f-b5d84929d312" alt="image" style="zoom: 50%;" />
+
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/010f574f-0646-4a07-85f3-b327f8728040" alt="image"  />
 
 Transfer learning was utilized during the model training process. We used a pretrained model, yolov8l-seg.pt, and adapted it to our custom dataset. This technique allows for the leveraging of pre-existing neural networks, saving time and computational resources while also often improving the model's performance on the specific task.
-
-```python
-from ultralytics import YOLO
-model = YOLO("yolov8l-seg.pt")
-model.train(task="segment", data="robowflow를 통해 다운받은 yaml파일 경로", 
-						batch=-1, 
-						imgsz=640, 
-						device=0, 
-						plots=True, 
-						save=True, 
-						epochs = 120)
-```
 
 
 
@@ -361,7 +400,7 @@ model.train(task="segment", data="robowflow를 통해 다운받은 yaml파일 �
 
 All learning process has been completed through transfer learning, and since one of the most important elements of this project is accurate object detection, performance evaluation is essential. Using the learned model, the environment and the location of the rubber cone were different 100 times to evaluate the recognition rate of the rubber cone. The evaluation results for this are as follows. It has been confirmed that 98 out of 100 times of recognition is accurate, and 2 times of recognition is incorrect or disconnected from time to time, and that the problem occurs mainly in dark environments.		
 
-<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/3e4d70e0-0ada-49a4-b590-36dbc2333556" alt="image" style="zoom:67%;" />
+<img src="https://github.com/HanMinung/NumericalProgramming/assets/99113269/3e4d70e0-0ada-49a4-b590-36dbc2333556" alt="image"  />
 
 
 
@@ -441,7 +480,7 @@ The results of the experiment are presented in Section 4: Results. When the expe
 
 ## **4. Result**
 
-Demo video link : [click here](https://youtu.be/Zah9VBC8uuM)
+Demo video link : [click here](https://youtu.be/E1y1upZiMnY)
 
 [![Emergency braking system](http://img.youtube.com/vi/Zah9VBC8uuM/0.jpg)](https://www.youtube.com/watch?v=Zah9VBC8uuM) 
 
@@ -461,6 +500,7 @@ Since a 2D LiDAR was used, there could be a challenge when dealing with actual c
 
 * Main code is updated here & Please contact us if you need other codes for proper running !
 * Main code (sensor calibration & platform control)
+* Lidar code
 
 ```python
 # ----------------------------------------------------------------------------------------------------
@@ -896,4 +936,234 @@ if __name__ == "__main__" :
 ```
 
 
+
+- **Train**
+
+```python
+from ultralytics import YOLO
+model = YOLO("yolov8l-seg.pt")
+model.train(task="segment", data="Path of train data folder", 
+						batch=-1, 
+						imgsz=640, 
+						device=0, 
+						plots=True, 
+						save=True, 
+						epochs = 120)
+```
+
+
+
+- **Detect**
+
+```python
+# ----------------------------------------------------------------------------------------------------
+#
+#   @   DLIP final project code  :   Implementation of emergency braking system for automous vehicles
+#   @   Update     				 :   2023.6.11
+#   @   Purpose    			     :   Cmaera code using yolov8
+#
+# ----------------------------------------------------------------------------------------------------
+
+import cv2
+import torch
+from ultralytics import YOLO
+import numpy as np
+import time
+import tensorrt
+from multiprocessing import shared_memory
+from   datetime    import datetime
+
+weight_path = 'runs\segment\\demo.pt'
+model = YOLO(weight_path)
+
+my_cam_index = 0 
+cap = cv2.VideoCapture(my_cam_index, cv2.CAP_DSHOW) 
+# print('cap: ', str(cap))
+
+cap.set(cv2.CAP_PROP_FPS, 60.0) 
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc('M','J','P','G'))
+cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.75) 
+# cap.set(cv2.CAP_PROP_EXPOSURE, -11.0)
+print(cap.get(cv2.CAP_PROP_EXPOSURE))
+
+# ------------------------------------------------------------------- #
+
+width   = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height  = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps     = int(cap.get(cv2.CAP_PROP_FPS))
+
+print('get cam fps: ', fps)
+user_font    = {0   : cv2.FONT_HERSHEY_COMPLEX,
+                1   : cv2.FONT_ITALIC,
+                2   : cv2.FONT_HERSHEY_DUPLEX,
+                }
+
+sm_name = "HADA3_CAM"
+print("start...")
+shared_memory_name = "HADA3_CAM"
+shm_size = 6 * 2 * 4  # (int int) * 6개 
+shm = shared_memory.SharedMemory(name=shared_memory_name, create=True, size=shm_size)
+print("sm memory is open...")
+
+# 영상 저장 initialize
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+output_filename   : str = datetime.today().strftime(".\output\output_%Y_%m_%d_%H%M.mp4")  # save results to project/name
+frame_size = (width, height)
+out = cv2.VideoWriter(output_filename, fourcc, fps, frame_size)
+
+with open('counting_result.txt', 'w') as f:
+    f.write('')
+
+def key_command(_key):
+            # 정지 
+
+        if _key == ord('s') :   cv2.waitKey()
+        
+        # 카메라 노출 수동 조절
+        elif _key == ord('i'):
+        # Get current exposure.
+            exposure = cap.get(cv2.CAP_PROP_EXPOSURE)
+            # Increase exposure by 1.
+            cap.set(cv2.CAP_PROP_EXPOSURE, exposure + 1)
+
+        # Decrease exposure on 'd' key press.
+        elif _key == ord('d'):
+            # Get current exposure.
+            exposure = cap.get(cv2.CAP_PROP_EXPOSURE)
+            # Decrease exposure by 1.
+            cap.set(cv2.CAP_PROP_EXPOSURE, exposure - 1)
+
+# SM memory
+def send_data(shm_name, points):
+    shm = shared_memory.SharedMemory(name=shm_name)
+    shared_data = np.ndarray((6,2), dtype='int', buffer=shm.buf)
+
+    # Check if the middle_points list is empty and return if it is
+    if not points:
+        shared_data.fill(0)
+        return    
+    else:
+
+        # Clear the shared_data array with zeros
+        n = len(points)
+
+        # parsing 작업
+        for i in range(n):
+            min_idx = i
+            for j in range(i+1, n):
+                if points[j][1] < points[min_idx][1]:
+                    min_idx = j
+            points[i], points[min_idx] = points[min_idx], points[i]
+
+        # Keep only the first 6 sorted middle_points
+        points = points[:6]
+    
+    shared_data.fill(0)
+
+    for i in range(len(points)):
+        shared_data[i] = points[i]
+
+colors = {0: (255, 0, 0),  # Blue for class 0
+          1: (40, 188, 249),  # white for class 1
+          }
+
+cls_name = {0: "b_rub",
+            1: "y_rub", }
+
+line_width = 2
+font_thick = 1
+
+# Loop through the video frames
+while cap.isOpened():
+
+    start_time = time.time()
+    prev_time = start_time
+
+    # Read a frame from the video
+    ret, frame      = cap.read()
+
+    if ret == True: # Run YOLOv8 inference on the frame
+
+        results = model(frame, imgsz=640)
+        result = results[0]
+        len_result = len(result)
+
+        if len_result != 0: # 객체가 인식이 된다면 
+        
+            middle_points = []  # sm data list 초기화
+
+            for idx in range(len_result):
+
+                detection = result[idx]
+
+                box = detection.boxes.cpu().numpy()[0]
+                cls = int(box.cls[0])                
+
+                xywh    = box.xywh[0].astype(int)
+                centerX = xywh[0]
+                centerY = xywh[1]
+                area    = xywh[2] * xywh[3]
+                
+                xyxy    = box.xyxy[0].astype(int)
+                x1      = xyxy[0]
+                y1      = xyxy[1]
+                conf    = box.conf[0]
+
+                if area > 3000 and conf > 0.8: 
+
+                    color = colors[cls]
+                    conf = box.conf[0]
+                    r = box.xyxy[0].astype(int) # box
+                    
+                    cv2.line(frame, (centerX, centerY), (centerX, centerY), (0, 0, 255), 4)
+
+                    cv2.rectangle(frame, r[:2], r[2:], color, thickness=line_width, lineType=cv2.LINE_AA)
+                    label = str(cls_name[cls]) + ' ' +str(f'{ conf:.2f}')
+                    text_w, text_h = cv2.getTextSize(label, 0, fontScale=line_width/3,thickness=font_thick)[0]
+                    outside = r[:2][1] - text_h >= 3
+                    text_p1 = r[:2]
+                    text_p2 = r[:2][0] + text_w, r[:2][1] - text_h - 3 if outside else  r[:2][1] + text_h + 3
+                    cv2.rectangle(frame, text_p1, text_p2, color, -1, cv2.LINE_AA)  # filled
+
+                    cv2.putText(frame, label ,
+                                (text_p1[0], text_p1[1] - 2 if outside else text_p1[1] + text_h + 2), 
+                                0, 
+                                line_width/3, 
+                                (255,255,255), 
+                                thickness=font_thick, 
+                                lineType=cv2.LINE_AA)
+                    
+                    # shared memory에 append를 해서 넘기는 부분
+                    middle_points.append((centerX, centerY))
+
+            send_data(sm_name, middle_points)
+        else:
+            middle_points = []  # 0으로
+            send_data(sm_name, middle_points)
+
+        diff_time = time.time() - prev_time
+        
+        if diff_time > 0:
+            fps = 1 / diff_time
+
+        cv2.putText(frame, f'FPS : {fps:.2f}', (20, 40), user_font[2], 1, (0, 255, 0), 2)
+
+        out.write(frame)
+        cv2.imshow("mask", frame)
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q')   :   break
+        key_command(key)
+
+    else:
+        print("Camera is Disconnected ...!")
+        break
+
+# Release the video capture object and close the display window
+shm.close()
+print("sm memory close...") 
+
+cap.release()
+cv2.destroyAllWindows()
+```
 
