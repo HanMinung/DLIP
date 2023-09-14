@@ -1,6 +1,6 @@
 # Deep learning Image processing
 
-@ writer : Min-Ung Han
+@ writer : Min-Woong Han
 
 @ Date : 2023 Spring semester
 
