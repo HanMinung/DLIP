@@ -16,7 +16,7 @@
 
 ## Contents
 
-1. Final project introduction and src files : [click here to view](https://github.com/HanMinung/DLIP/tree/main/FinalProject)
+1. Final project introduction and src files : [click here to view](https://github.com/HanMinung/DLIP/tree/main/Final_project)
 
    
 
